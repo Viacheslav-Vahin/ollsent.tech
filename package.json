@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "docx": "^8.0.3",
+    "pdfmake": "^0.2.7"
+  }
+}

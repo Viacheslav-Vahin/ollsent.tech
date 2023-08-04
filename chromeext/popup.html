@@ -1,0 +1,131 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Ollsent</title>
+    <link rel="stylesheet" type="text/css" href="libs/select2.min.css">
+    <style>
+        body {
+            width: 300px;
+            height: 260px;
+        }
+        #loginForm {
+            width: 260px;
+            padding: 15px;
+        }
+        label {
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+        }
+        input {
+            border: none;
+            outline: none;
+            box-shadow: none;
+            border-bottom: 1px solid #16a086;
+            height: 35px;
+            width: 100%;
+            display: block;
+            padding: 0 5px;
+            margin: 10px 0;
+            font-size: 16px;
+            background: #f3f3f3;
+        }
+        .adv {
+            display: block;
+            text-align: center;
+            padding: 15px 0;
+        }
+        .adv a {
+            color: #16a086;
+            text-decoration: none;
+            cursor: default;
+            pointer-events: none;
+        }
+        .btn_wrapp {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 0;
+        }
+        button {
+            border: 1px solid #16a086;
+            color: #16a086;
+            padding: 7px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            transition-duration: .4s;
+            cursor: pointer;
+            position: relative;
+            margin: 0 10px;
+            background: #fff;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #16a086;
+            color: #fff;
+        }
+        #loginOk {
+            display: none;
+        }
+        #loginOk p {
+            font-size: 16px;
+            padding-top: 60px;
+            text-align: center;
+        }
+    </style>
+    <script src="popup.js"></script>
+</head>
+<body>
+<div id="loginOk">
+    <p>Ви увійшли як - <span id="usernameDisplay" style="font-weight: bold"></span></p>
+    <div class="btn_wrapp">
+        <button id="logoutButton">Вийти</button>
+    </div>
+</div>
+<div id="loginForm">
+    <div>
+        <label for="username">Ім'я:</label>
+        <input type="text" id="username" name="username">
+    </div>
+    <div>
+        <label for="password">Пароль:</label>
+        <input type="password" id="password" name="password">
+    </div>
+    <div class="btn_wrapp">
+        <button id="loginButton">Увійти</button>
+    </div>
+    <div id="errorMessage" style="display: none"><h4 style="color: red; font-weight: bold; text-align: center;">Введено не вірний логін чи пароль!</h4></div>
+</div>
+
+<div class="adv"><a href="https://ollsent.tech">Ollsent.tech</a></div>
+<!--<div id="mainform" class="ext-wrapper">-->
+<!--    <h1>Ollsent</h1>-->
+<!--    <div class="fields-wrapper">-->
+<!--        <div id="vacancy"><h3>Вакансія</h3></div>-->
+<!--        <div id="stage"></div>-->
+<!--        <div id="toogler"></div>-->
+<!--        <div id="pop-prof"><h3>IT</h3></div>-->
+<!--        <div id="pop-noit"><h3>Інші</h3></div>-->
+<!--        <div id="pop-dos"><h3>Досвід роботи</h3></div>-->
+<!--        <div id="pop-zp"><h3>Зарплатня</h3></div>-->
+<!--        <div id="pop-mova"><h3>Мова</h3></div>-->
+<!--        <div id="pop-mova-r"><h3>Рівень мови</h3></div>-->
+<!--        <div id="contacts">-->
+<!--            <h3>Контакти</h3>-->
+<!--        </div>-->
+<!--        <div id="add-cont-btn">-->
+<!--            <button id="add-button">Додати контакти</button>-->
+<!--        </div>-->
+<!--        <div id="region"><h3>Регіон</h3></div>-->
+<!--        <div id="tags"><h3>Теги</h3></div>-->
+<!--        <div id="comments"><h3>Коментарі</h3></div>-->
+<!--    </div>-->
+<!--    <button id="save-button">Зберегти в ATS</button>-->
+<!--</div>-->
+<script src="libs/jquery-3.7.0.min.js"></script>
+<script src="libs/select2.min.js"></script>
+</body>
+</html>

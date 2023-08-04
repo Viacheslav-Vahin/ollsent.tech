@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Ollsent",
+  "version": "1.0",
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "permissions": ["activeTab", "scripting", "tabs", "storage"],
+  "host_permissions": [
+    "https://www.linkedin.com/*",
+    "https://www.work.ua/*",
+    "https://i.work.ua/*",
+    "https://rabota.ua/*",
+    "https://robota.ua/*",
+    "https://cv-photos-original.rabota.ua/*",
+    "https://djinni.co/*",
+    "https://cv.djinni.co/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.linkedin.com/*", "https://www.work.ua/*", "https://i.work.ua/*", "https://rabota.ua/*", "https://robota.ua/*", "https://cv-photos-original.rabota.ua/*", "https://djinni.co/*", "https://cv.djinni.co/*"],
+      "css": ["libs/select2.min.css"],
+      "js": ["libs/jquery-3.7.0.min.js", "libs/select2.min.js", "content.js"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": ["https://djinni.co/q/*"],
+      "js": ["otherContent.js"],
+      "run_at": "document_end"
+    }
+  ]
+}

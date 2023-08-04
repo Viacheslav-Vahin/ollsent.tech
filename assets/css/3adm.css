@@ -1,0 +1,55 @@
+#v_descr {
+    width: 30%;
+    color: red;
+    font-weight: bold;
+}
+.widefat thead td, .widefat thead th {
+    border-bottom: 1px solid blue !important;
+}
+.v_descr.column-v_descr p {
+    color: blue;
+}
+#adminmenu, #adminmenu .wp-submenu, #adminmenuback, #adminmenuwrap {
+    background-color: #CEE2D3;
+}
+#adminmenu .wp-has-current-submenu .wp-submenu, #adminmenu .wp-has-current-submenu .wp-submenu.sub-open, #adminmenu .wp-has-current-submenu.opensub .wp-submenu, #adminmenu a.wp-has-current-submenu:focus+.wp-submenu, .no-js li.wp-has-current-submenu:hover .wp-submenu {
+    background-color: #A6F5FF;
+}
+#adminmenu .wp-has-current-submenu .wp-submenu .wp-submenu-head, #adminmenu .wp-menu-arrow, #adminmenu .wp-menu-arrow div, #adminmenu li.current a.menu-top, #adminmenu li.wp-has-current-submenu a.wp-has-current-submenu, .folded #adminmenu li.current.menu-top, .folded #adminmenu li.wp-has-current-submenu {
+    color: #218721;
+    background-color: #A6F5FF;
+}
+#adminmenu a {
+    color: #218721;
+}
+#adminmenu div.wp-menu-image:before {
+    color: #218721;
+}
+#adminmenu .current div.wp-menu-image:before, #adminmenu .wp-has-current-submenu div.wp-menu-image:before, #adminmenu a.current:hover div.wp-menu-image:before, #adminmenu a.wp-has-current-submenu:hover div.wp-menu-image:before, #adminmenu li.wp-has-current-submenu a:focus div.wp-menu-image:before, #adminmenu li.wp-has-current-submenu.opensub div.wp-menu-image:before, #adminmenu li.wp-has-current-submenu:hover div.wp-menu-image:before {
+    color: #218721;
+}
+#adminmenu .opensub .wp-submenu li.current a, #adminmenu .wp-submenu li.current, #adminmenu .wp-submenu li.current a, #adminmenu .wp-submenu li.current a:focus, #adminmenu .wp-submenu li.current a:hover, #adminmenu a.wp-has-current-submenu:focus+.wp-submenu li.current a {
+    color: #218721;
+}
+#adminmenu .wp-submenu a {
+    color: #218721;
+}
+#wpadminbar {
+    background-color: #A6F5FF;
+}
+#wpadminbar .ab-empty-item, #wpadminbar a.ab-item, #wpadminbar>#wp-toolbar span.ab-label, #wpadminbar>#wp-toolbar span.noticon {
+    color: blue;
+}
+#wpadminbar #adminbarsearch:before, #wpadminbar .ab-icon:before, #wpadminbar .ab-item:before {
+    color: #218721;
+}
+body.wp-admin {
+    background: #FAF3D2;
+}
+/*.chVac .values input {*/
+/*    width: 70px;*/
+/*}*/
+/*.chVac .acf-input .values li>span {*/
+/*    width: fit-content;*/
+/*    display: inline;*/
+/*}*/
