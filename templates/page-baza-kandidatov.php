@@ -92,7 +92,7 @@ acf_form_head(); get_header();
                     </div>
                 </div>
                     <div class="filter-block">
-                        <input type="checkbox" id="cv_ch" value="" checked><label for="cv_ch">Показати кандидатів з CV</label>
+                        <input type="checkbox" id="cv_ch" value=""><label for="cv_ch">Показати кандидатів з CV</label>
                     </div>
                     <div class="mova_wrapper fiw">
                         <div class="q_a togleShow fh">

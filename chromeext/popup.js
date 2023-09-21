@@ -1,5 +1,15 @@
 document.addEventListener('DOMContentLoaded', function () {
 
+    document.querySelector('#username').addEventListener('input', function () {
+        var username = document.getElementById('username').value;
+        localStorage.setItem('username', username);
+        document.getElementById('username').value = username;
+    });
+    document.querySelector('#password').addEventListener('input', function () {
+        var password = document.getElementById('password').value;
+        localStorage.setItem('password', password);
+        document.getElementById('password').value = password;
+    });
     document.getElementById('loginButton').addEventListener('click', function () {
         var username = document.getElementById('username').value;
         var password = document.getElementById('password').value;
@@ -36,10 +46,10 @@ document.addEventListener('DOMContentLoaded', function () {
     window.onload = function () {
         var username = localStorage.getItem('username');
         var password = localStorage.getItem('password');
-        if (username && password) {
+        // if (username && password) {
             document.getElementById('username').value = username;
             document.getElementById('password').value = password;
-        }
+        // }
         chrome.storage.local.get(['username'], function (result) {
             if (result.username) {
                 // Выводим имя пользователя

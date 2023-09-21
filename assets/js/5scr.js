@@ -969,6 +969,80 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 jQuery(document).ready(function ($) {
+
+    $('#addMore').click(function() {
+        var roleOptions = $('#role_select').html();
+        var newInputs = `
+        <div class="user-inputs">
+        <input type="email" name="email[]" placeholder="Email" required>
+        <input type="text" name="first_name[]" placeholder="Ім'я" required>
+        <input type="text" name="last_name[]" placeholder="Прізвище" required>
+        <select name="user_role[]">
+            ${roleOptions}
+        </select>     
+        <input type="text" name="custom_role_name[]" placeholder="Назва ролі" disabled>
+        </div>
+    `;
+
+        $('.user-inputs-wrapper').append(newInputs);
+    });
+
+    $('.edit-capabilities').click(function() {
+        var userId = $(this).data('user-id');
+        var $popup = $('#capabilities-popup-' + userId);
+        var $form = $popup.find('#capabilities-form');  // Предполагаем, что форма находится внутри каждого попапа
+
+        $form.find('[name="user_id"]').val(userId);
+
+        // Загрузить текущие возможности пользователя и установить чекбоксы
+        // Здесь вы можете добавить AJAX-запрос для загрузки текущих возможностей пользователя и установки чекбоксов
+
+        $popup.dialog({
+            title: "Редагувати можливості",
+            modal: true,
+            width: 768,
+            buttons: {
+                "Зберегти": function() {
+                    // Здесь вы можете добавить AJAX-запрос для сохранения возможностей пользователя
+                    $form.submit();
+                },
+                "Відміна": function() {
+                    $(this).dialog("close");
+                }
+            }
+        });
+    });
+
+    $(document).on('submit', '#capabilities-form', function(e) {
+        e.preventDefault();
+        var formData = $(this).serialize();
+        $.post(ajaxurl, formData + '&action=update_user_capabilities', function(response) {
+            if(response.success) {
+                console.log(response);
+                alert('Можливоств оновлені');
+                $(e.target).closest(".ui-dialog-content").dialog("close");
+            } else {
+                console.log('Error: ' + response.data);
+                alert('Виникла помилка');
+            }
+        });
+    });
+
+
+// Активация текстового поля для создания собственной роли при выборе "Создать свою роль"
+    $(document).on('change', 'select[name="user_role[]"]', function() {
+        var customRoleInput = $(this).next('input[name="custom_role_name[]"]');
+        if ($(this).val() === 'custom') {
+            customRoleInput.prop('disabled', false);
+            customRoleInput.css('display', 'block');
+        } else {
+            customRoleInput.prop('disabled', true).val('');
+            customRoleInput.css('display', 'none');
+        }
+    });
+
+
+
     function tran() {
         $(".cand_empl_btn").addClass('tran');
     }
@@ -1824,23 +1898,24 @@ jQuery(document).ready(function ($) {
         });
     jQuery(document).ready(function($) {
         // Обработчик для второго шага
-        $('#formsubm').click(function(e) {
-            e.preventDefault();
-            var data = {
-                action: 'submit_step',
-                email: $('#email').val(),
-                checkboxRules: $('input[name=checkboxRules]').is(':checked'),
-                checkboxSubscribe: $('input[name=checkboxSubscribe]').is(':checked'),
-                lastName: $('input[name=lastName]').val(),
-                name: $('input[name=name]').val(),
-                password: $('input[name=password]').val(),
-                confirmPassword: $('input[name=confirmPassword]').val(),
-                security: MyAjax2.security
-            };
-            $.post(MyAjax2.ajaxurl, data, function(response) {
-                $('.mainfaq').css('display','block');
-            });
-        });
+        // $('#formsubm').click(function(e) {
+        //     e.preventDefault();
+        //     var data = {
+        //         action: 'submit_step',
+        //         email: $('#email').val(),
+        //         checkboxRules: $('input[name=checkboxRules]').is(':checked'),
+        //         checkboxSubscribe: $('input[name=checkboxSubscribe]').is(':checked'),
+        //         lastName: $('input[name=lastName]').val(),
+        //         name: $('input[name=name]').val(),
+        //         password: $('input[name=password]').val(),
+        //         confirmPassword: $('input[name=confirmPassword]').val(),
+        //         security: MyAjax2.security
+        //     };
+        //     $.post(MyAjax2.ajaxurl, data, function(response) {
+        //
+        //         $('.mainfaq').css('display','block');
+        //     });
+        // });
     });
     $('.css-vwfnud.agr').on('click',function (e) {
         e.preventDefault();
@@ -2823,47 +2898,54 @@ function updRekWrapper(e) {
 //$('.mcr, .myVac, .myOffers, .tasksData, .faqData, .pipel2, .mpr, .myAnalit').hide();
 function rekrTabs(){
     $('.myProfile').on('click', function () {
-        $(".myVac, .mcr, .mmr, .myOffers, .myAnalit, .pipel2, .tasksData, .faqData, .myCli").slideUp("slow");
+        $(".myVac, .mcr, .mmr, .myOffers, .myAnalit, .pipel2, .tasksData, .faqData, .myCli, .myTeam").slideUp("slow");
         $(".mpr").slideDown("slow");
         $('.myProfile h4').addClass('left_menu_act');
-        $('.myV h4, .myO h4, .myC h4, .myM h4, .myA h4, .pipeline h4, .myTasks h4, .myFAQ h4, .myClients h4').removeClass('left_menu_act');
+        $('.myV h4, .myO h4, .myC h4, .myM h4, .myA h4, .pipeline h4, .myTasks h4, .myFAQ h4, .myClients h4, .myTeamenu h4').removeClass('left_menu_act');
         $('.fimg input[type=submit], .fimg [data-name=frfile], .fimg .acf-icon.dark').slideDown("slow");
         $('.fimg a[data-name=edit]').slideUp();
     })
 
     $('.myV').on('click', function () {
-        $(".mpr, .mcr, .mmr, .myOffers, .myAnalit, .pipel2, .tasksData, .faqData, .myCli").slideUp("slow");
+        $(".mpr, .mcr, .mmr, .myOffers, .myAnalit, .pipel2, .tasksData, .faqData, .myCli, .myTeam").slideUp("slow");
         $(".myVac").slideDown("slow");
         $('.myV h4').addClass('left_menu_act');
-        $('.myProfile h4, .myC h4, .myO h4, .myM h4, .myA h4, .pipeline h4, .myTasks h4, .myFAQ h4, .myClients h4').removeClass('left_menu_act');
+        $('.myProfile h4, .myC h4, .myO h4, .myM h4, .myA h4, .pipeline h4, .myTasks h4, .myFAQ h4, .myClients h4, .myTeamenu h4').removeClass('left_menu_act');
         $('.fimg input[type=submit], .fimg [data-name=frfile], .fimg .acf-icon.dark').slideUp("slow");
     })
     $('.myClients').on('click', function () {
-        $(".mpr, .mcr, .mmr, .myOffers, .myAnalit, .pipel2, .tasksData, .faqData, .myVac").slideUp("slow");
+        $(".mpr, .mcr, .mmr, .myOffers, .myAnalit, .pipel2, .tasksData, .faqData, .myVac, .myTeam").slideUp("slow");
         $(".myCli").slideDown("slow");
         $('.myClients h4').addClass('left_menu_act');
-        $('.myV h4, .myProfile h4, .myC h4, .myM h4, .myA h4, .pipeline h4, .myTasks h4, .myFAQ h4').removeClass('left_menu_act');
+        $('.myV h4, .myProfile h4, .myC h4, .myM h4, .myA h4, .pipeline h4, .myTasks h4, .myFAQ h4, .myTeamenu h4').removeClass('left_menu_act');
         $('.fimg input[type=submit], .fimg [data-name=frfile], .fimg .acf-icon.dark').slideUp("slow");
     })
-    $('.myO').on('click', function () {
-        $(".mpr, .mcr, .mmr, .myVac, .myAnalit, .pipel2, .tasksData, .faqData, .myCli").slideUp("slow");
-        $(".myOffers").slideDown("slow");
-        $('.myO h4').addClass('left_menu_act');
+    $('.myTeamenu').on('click', function () {
+        $(".mpr, .mcr, .mmr, .myOffers, .myAnalit, .pipel2, .tasksData, .faqData, .myVac, .myCli").slideUp("slow");
+        $(".myTeam").slideDown("slow");
+        $('.myTeamenu h4').addClass('left_menu_act');
         $('.myV h4, .myProfile h4, .myC h4, .myM h4, .myA h4, .pipeline h4, .myTasks h4, .myFAQ h4, .myClients h4').removeClass('left_menu_act');
         $('.fimg input[type=submit], .fimg [data-name=frfile], .fimg .acf-icon.dark').slideUp("slow");
     })
+    $('.myO').on('click', function () {
+        $(".mpr, .mcr, .mmr, .myVac, .myAnalit, .pipel2, .tasksData, .faqData, .myCli, .myTeam").slideUp("slow");
+        $(".myOffers").slideDown("slow");
+        $('.myO h4').addClass('left_menu_act');
+        $('.myV h4, .myProfile h4, .myC h4, .myM h4, .myA h4, .pipeline h4, .myTasks h4, .myFAQ h4, .myClients h4, .myTeamenu h4').removeClass('left_menu_act');
+        $('.fimg input[type=submit], .fimg [data-name=frfile], .fimg .acf-icon.dark').slideUp("slow");
+    })
     $('.myA').on('click', function () {
-        $(".mpr, .mcr, .mmr, .myVac, .myOffers, .pipel2, .tasksData, .faqData, .myCli").slideUp("slow");
+        $(".mpr, .mcr, .mmr, .myVac, .myOffers, .pipel2, .tasksData, .faqData, .myCli, .myTeam").slideUp("slow");
         $(".myAnalit").slideDown("slow");
         $('.myA h4').addClass('left_menu_act');
-        $('.myV h4, .myProfile h4, .myC h4, .myO h4, .myM h4, .pipeline h4, .myTasks h4, .myFAQ h4, .myClients h4').removeClass('left_menu_act');
+        $('.myV h4, .myProfile h4, .myC h4, .myO h4, .myM h4, .pipeline h4, .myTasks h4, .myFAQ h4, .myClients h4, .myTeamenu h4').removeClass('left_menu_act');
         $('.fimg input[type=submit], .fimg [data-name=frfile], .fimg .acf-icon.dark').slideUp("slow");
     })
     $('.myC').on('click', function () {
-        $(".myVac, .mpr, .mmr, .myOffers, .myAnalit, .pipel2, .tasksData, .faqData, .myCli, .allmr.pipe2").slideUp("slow");
+        $(".myVac, .mpr, .mmr, .myOffers, .myAnalit, .pipel2, .tasksData, .faqData, .myCli, .allmr.pipe2, .myTeam").slideUp("slow");
         $(".mcr").slideDown("slow");
         $('.myC h4').addClass('left_menu_act');
-        $('.myV h4, .myO h4, .myProfile h4, .myM h4, .myA h4, .pipeline h4, .myTasks h4, .myFAQ h4, .myClients h4').removeClass('left_menu_act');
+        $('.myV h4, .myO h4, .myProfile h4, .myM h4, .myA h4, .pipeline h4, .myTasks h4, .myFAQ h4, .myClients h4, .myTeamenu h4').removeClass('left_menu_act');
         $('.fimg input[type=submit], .fimg [data-name=frfile], .fimg .acf-icon.dark').slideUp("slow");
     })
     // $('.pipeline').on('click', function () {
@@ -2874,17 +2956,17 @@ function rekrTabs(){
     //     $('.fimg input[type=submit], .fimg [data-name=frfile], .fimg .acf-icon.dark').slideUp("slow");
     // });
     $('.myTasks').on('click', function () {
-        $(".mcr, .myVac, .mpr, .mmr, .myOffers, .myAnalit, .pipel2, .faqData, .myCli").slideUp("slow");
+        $(".mcr, .myVac, .mpr, .mmr, .myOffers, .myAnalit, .pipel2, .faqData, .myCli, .myTeam").slideUp("slow");
         $(".tasksData").slideDown("slow");
         $('.myTasks h4').addClass('left_menu_act');
-        $('.myC h4, .myV h4, .myO h4, .myProfile h4, .myM h4, .myA h4, .pipeline h4, .myFAQ h4, .myClients h4').removeClass('left_menu_act');
+        $('.myC h4, .myV h4, .myO h4, .myProfile h4, .myM h4, .myA h4, .pipeline h4, .myFAQ h4, .myClients h4, .myTeamenu h4').removeClass('left_menu_act');
         $('.fimg input[type=submit], .fimg [data-name=frfile], .fimg .acf-icon.dark').slideUp("slow");
     });
     $('.myFAQ').on('click', function () {
-        $(".mcr, .myVac, .mpr, .mmr, .myOffers, .myAnalit, .pipel2, .tasksData, .myCli").slideUp("slow");
+        $(".mcr, .myVac, .mpr, .mmr, .myOffers, .myAnalit, .pipel2, .tasksData, .myCli, .myTeam").slideUp("slow");
         $(".faqData").slideDown("slow");
         $('.myFAQ h4').addClass('left_menu_act');
-        $('.myC h4, .myV h4, .myO h4, .myProfile h4, .myM h4, .myA h4, .pipeline h4, .myTasks h4, .myClients h4').removeClass('left_menu_act');
+        $('.myC h4, .myV h4, .myO h4, .myProfile h4, .myM h4, .myA h4, .pipeline h4, .myTasks h4, .myClients h4, .myTeamenu h4').removeClass('left_menu_act');
         $('.fimg input[type=submit], .fimg [data-name=frfile], .fimg .acf-icon.dark').slideUp("slow");
     });
     $('.myM').on('click',  addKanban.bind(this));
@@ -2943,14 +3025,14 @@ let openNt = $('.openNotif0').text();
     openNt=parseInt(openNt, 10);
     //console.log('op '+openNt);
 if(openNt===0){
-$('.mmr, .mcr, .myVac, .myOffers, .tasksData, .faqData, .pipel2, .myAnalit, .myCli').hide();
+$('.mmr, .mcr, .myVac, .myOffers, .tasksData, .faqData, .pipel2, .myAnalit, .myCli, .myTeam').hide();
     // $('.myM h4').addClass('left_menu_act');
      $('.myProfile h4').addClass('left_menu_act');
      rekrTabs();
     }
     if(openNt===1){
-        $(".myVac, .mpr, .mcr, .myOffers, .myAnalit, .pipel2, .tasksData, .faqData, .myCli").hide();
-        $('.myV h4, .myO h4, .myC h4, .myProfile h4, .myA h4, .pipeline h4, .myTasks h4, .myFAQ h4, .myClients h4').removeClass('left_menu_act');
+        $(".myVac, .mpr, .mcr, .myOffers, .myAnalit, .pipel2, .tasksData, .faqData, .myCli, .myTeam").hide();
+        $('.myV h4, .myO h4, .myC h4, .myProfile h4, .myA h4, .pipeline h4, .myTasks h4, .myFAQ h4, .myClients h4, .myTeamenu h4').removeClass('left_menu_act');
         $('.myM h4').addClass('left_menu_act');
         rekrTabs();
         // $(".mmr").slideDown("fast");
@@ -4900,4 +4982,68 @@ if (expandableText) {
         expandableText.classList.toggle('expanded');
     });
 }
+
+document.addEventListener("DOMContentLoaded", function() {
+    var settingsIcons = document.querySelectorAll('.settings-icon');
+
+    settingsIcons.forEach(function(settingsIcon) {
+        var userSettings = settingsIcon.closest('#user-settings');
+        var settingsModal = userSettings.querySelector('.settings-modal');
+
+        // Показать модальное окно, когда нажимают на иконку настроек
+        settingsIcon.addEventListener('click', function(event) {
+            // Сначала скрываем все модальные окна
+            document.querySelectorAll('.settings-modal').forEach(function(modal) {
+                modal.style.display = 'none';
+            });
+
+            // Показываем только текущее модальное окно
+            settingsModal.style.display = 'block';
+
+            // Предотвращаем всплытие события
+            event.stopPropagation();
+        });
+    });
+
+    // Скрыть модальное окно, когда клик происходит вне блока user-settings
+    document.addEventListener('click', function() {
+        document.querySelectorAll('.settings-modal').forEach(function(modal) {
+            modal.style.display = 'none';
+        });
+    });
+
+    var transferLinks = document.querySelectorAll('.transfer-admin');
+
+    transferLinks.forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            var userId = this.getAttribute('data-user-id');
+            var confirmTransfer = confirm("Ви дійсно хочете передати права адміністратора?");
+
+            if (confirmTransfer) {
+                fetch(ajaxurl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
+                    },
+                    body: 'action=transfer_admin_rights&user_id=' + userId,
+                    credentials: 'same-origin' // Важно для того, чтобы cookies были переданы
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(data.message);
+                        } else {
+                            alert('Ошибка: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Ошибка AJAX:', error);
+                    });
+
+            }
+        });
+    });
+});
 

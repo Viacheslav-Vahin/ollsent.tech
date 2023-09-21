@@ -978,7 +978,23 @@ display: flex;
 .acc_fam {
     margin-left: 3px;
 }
+.guidlogo {
+    width: 50px;
+    height: 50px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+.topname {
+    display: flex;
+    align-items: center;
 
+}
+.guidstatus {
+    padding-top: 5px;
+}
 /* =============== single kand =============== */
 .foto_name {
     display: flex;
@@ -1615,3 +1631,182 @@ display: flex;
 .cli_logo {
     margin-right: 15px;
 }
+.invFormWraper {
+    position: fixed;
+    z-index: 9;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: auto;
+    width: 100%;
+    height: 100%;
+    display: none;
+}
+#invForm {
+    max-width: 1080px;
+    margin: auto;
+    position: absolute;
+    z-index: 999999;
+    background: #fff;
+    top: 10vh;
+    left: 0;
+    right: 0;
+    border-radius: 16px;
+    box-shadow: rgba(58, 53, 65, 0.12) 0px 2px 10px 0px;
+    width: 100%;
+    height: unset;
+    overflow-y: hidden;
+    display: none;
+}
+.invBg {
+    background: rgb(26,218,129);
+    background: radial-gradient(circle, rgba(26,218,129,1) 0%, rgba(12,70,23,1) 100%);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9;
+    display: none;
+}
+.user-inputs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.sotr_right .user-inputs input {
+    margin-bottom: 0;
+}
+.sotr_right .css-1lutgcs {
+    width: 100%;
+}
+.sotr_right .closeinvite .css-w0pj6f {
+    position: relative;
+    pointer-events: all;
+}
+#capabilities-form input[type="checkbox"] {
+    display: inline-block;
+    margin-bottom: 10px;
+}
+#invForm .css-kbjcjj {
+    width: 100%;
+    font-size: 22px;
+    padding-bottom: 25px;
+}
+#invForm .user-inputs input {
+    width: 100%;
+    margin-right: 15px;
+}
+input[name="custom_role_name[]"] {
+    display: none;
+}
+
+#addMore,
+#inviteForm input[type="submit"],
+.ui-dialog .ui-dialog-buttonpane button {
+    background-color: #16A086;
+    padding: 7px 20px;
+    border-radius: 6px;
+    color: #fff;
+    transition: all .3s ease 0s;
+    cursor: pointer;
+    margin-top: 35px;
+    display: inline-block;
+    max-width: 240px;
+    text-transform: uppercase;
+}
+.invite-form {
+    background-color: #16A086;
+    padding: 7px 20px;
+    border-radius: 6px;
+    color: #fff;
+    transition: all .3s ease 0s;
+    cursor: pointer;
+    margin-top: 12px;
+    display: inline-block;
+    max-width: 240px;
+    text-transform: uppercase;
+}
+#addMore:hover,
+#inviteForm input[type="submit"]:hover,
+.invite-form:hover,
+.ui-dialog .ui-dialog-buttonpane button:hover {
+    background-color: #008A70;
+    color: #FFF;
+}
+.capabilities-group {
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+.capabilities-group h4 {
+    margin-top: 0;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+#capabilities-form {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+}
+.ui-widget-header {
+    background: #16A086;
+    border: none;
+    color: #fff;
+}
+.settings-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 5px;
+    margin-right: 10px;
+}
+.settings-icon:before {
+    content: '⋮';
+    display: inline-block;
+    text-align: center;
+    font-size: 26px;
+    color: #16A086;
+    cursor: pointer;
+}
+.settings-modal {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: #fff;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,.5);
+    padding: 10px 0;
+    z-index: 999;
+}
+
+.settings-modal ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.settings-modal li {
+    padding: 10px;
+    cursor: pointer;
+}
+.settings-modal li a {
+    color: #000;
+    text-decoration: none;
+}
+.settings-modal li a:hover {
+    color: #16A086;
+}
+
+.settings-modal li i {
+    margin-right: 10px;
+}
+.guidinfo h3 a {
+    color: #16A086;
+    text-transform: uppercase;
+}
+/*.lMenuW.myTeamenu {*/
+/*    display: none;*/
+/*}*/

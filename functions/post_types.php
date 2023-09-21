@@ -1,22 +1,4 @@
 <?php
-function vac_type() {
-    register_post_type('vacancy', array(
-        'supports' => [ 'title', 'editor' ],
-        'capability_type' => 'vacancy',
-        'map_meta_cap' => true,
-        'public' => true,
-        'show_in_rest' => true,
-        'labels' => array(
-            'name' => 'Вакансії',
-            'add_new_item' => 'Добавити вакансію',
-            'edit_item' => 'Редагувати вакансію',
-            'all_items' => 'Усі вакансії',
-            'singular_name' => 'vacancy'
-        ),
-//        'menu_icon' => 'dashicons-businessperson'
-        'menu_icon' => 'dashicons-admin-multisite'
-    ));
-}
 function admin_menu() {
     register_post_type('adminmenu', array(
         'supports' => [ 'title', 'editor' ],
@@ -601,9 +583,30 @@ function specialty_order($query) {
     return $query;
 }
 add_filter('pre_get_posts', 'specialty_order');
+function vac_type() {
+    register_post_type('vacancy', array(
+        'supports' => [ 'title', 'editor' ],
+        'capability_type' => 'vacancy',
+        'map_meta_cap' => true,
+        'public' => true,
+        'show_in_rest' => true,
+        'labels' => array(
+            'name' => 'Вакансії',
+            'add_new_item' => 'Добавити вакансію',
+            'edit_item' => 'Редагувати вакансію',
+            'all_items' => 'Усі вакансії',
+            'singular_name' => 'vacancy'
+        ),
+//        'menu_icon' => 'dashicons-businessperson'
+        'menu_icon' => 'dashicons-admin-multisite'
+    ));
+}
 function candidate_type() {
     register_post_type('candidate', array(
-        'supports' => array('title', 'revisions'),
+        'capability_type' => 'candidate',
+        'map_meta_cap' => true,
+//        'show_ui' => true,
+        'supports' => [ 'title', 'editor', 'revisions' ],
         'public' => true,
         'labels' => array(
             'name' => 'База кандидатів',
@@ -634,7 +637,6 @@ function rekomend_type() {
         'menu_icon' => 'dashicons-welcome-write-blog'
     ));
 }
-
 function client_type() {
     register_post_type('client', array(
         'show_in_rest' => true,
@@ -841,7 +843,6 @@ function notif_hot_type() {
         'menu_icon' => 'dashicons-admin-tools'
     ));
 }
-
 function rekruter_type() {
     register_post_type('rekruter', array(
 //        'capability_type' => 'freelancer',

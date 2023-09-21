@@ -85,9 +85,9 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
             let currentUserId = getCurrentUserId(authToken);
             checkCandidateId(message.lastName, authToken, currentUserId, message.vacid)
                 .then(({isAddedByCurrentUser, isOnCurrentVacancy}) => {
-                    // console.log('isAddedByCurrentUser',isAddedByCurrentUser);
-                    // console.log('isOnCurrentVacancy',isOnCurrentVacancy);
-                    if (!isAddedByCurrentUser && !isOnCurrentVacancy) {
+                    console.log('isAddedByCurrentUser',isAddedByCurrentUser);
+                    console.log('isOnCurrentVacancy',isOnCurrentVacancy);
+                    if (!isAddedByCurrentUser && isOnCurrentVacancy) {
                         // Если кандидат был добавлен другим пользователем и уже на текущей вакансии, отображаем сообщение об ошибке
                         chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
                             chrome.tabs.sendMessage(tabs[0].id, {action: 'showError', message: 'Цього кандидата вже відмітили на вакансію'});
@@ -193,13 +193,13 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
             // console.log(message.lastName);
             // console.log(authToken);
             getCandidateSalary(message.lastName, authToken) // Используем lastName для поиска
-                .then(({foundCand, foundCandidatez, mova, kontakti22}) => {
+                .then(({foundCand, foundCandidatez, mova, kontakti22, dattime}) => {
                     // console.log('candidateSalary: ', foundCand);
-                    sendResponse({action: 'getCandidateSalaryResult', salary: foundCand, exp: foundCandidatez, mova: mova, kontakti22: kontakti22});
+                    sendResponse({action: 'getCandidateSalaryResult', salary: foundCand, exp: foundCandidatez, mova: mova, kontakti22: kontakti22, dattime: dattime});
                 })
                 .catch(error => {
                     console.error('Ошибка при получении зарплаты кандидата:', error);
-                    sendResponse({action: 'getCandidateSalaryResult', salary: null, mova: null});
+                    sendResponse({action: 'getCandidateSalaryResult', salary: null, exp: null, mova: null, kontakti22: null});
                 });
         });
         return true; // keeps the message channel open until sendResponse is executed
@@ -480,6 +480,7 @@ async function saveCandidate(authToken, firstName, lastName, contacts = [], allI
             throw new Error('Failed to upload file');
         }
         let uploadResultre = await uploadResponsere.json();
+        console.log('uploadResultre', uploadResultre);
         cvId = uploadResultre.id;
     }
         // else if(rezume && rezume.endsWith('.docx')) {
@@ -534,6 +535,7 @@ async function saveCandidate(authToken, firstName, lastName, contacts = [], allI
         let response_r = await fetch(foto);
         let blob = await response_r.blob();
         let formData = new FormData();
+        console.log('blob', blob);
         formData.append('file', blob, 'filename.jpg');
         let uploadResponse = await fetch('https://crm.ollsent.tech/wp-json/wp/v2/media', {
             method: 'POST',
@@ -542,11 +544,16 @@ async function saveCandidate(authToken, firstName, lastName, contacts = [], allI
             },
             body: formData
         });
+        console.log('foto', foto);
+        console.log('authToken', authToken);
+        console.log('uploadResponse', uploadResponse);
         if (!uploadResponse.ok) {
             throw new Error('Failed to upload image');
         }
         let uploadResult = await uploadResponse.json();
         imageId = uploadResult.id;
+    } else {
+        imageId = '';
     }
 
     let emailContact = contacts.find(contact => contact.id === '8651');
@@ -565,10 +572,14 @@ async function saveCandidate(authToken, firstName, lastName, contacts = [], allI
     sec1 = sec1 + 86400;
     sec1 = Math.floor(sec1);
     let allInfoPar = '';
+    console.log('allInfo', allInfo);
+    let str = allInfo;  // Ваша строка здесь
+    let result = str.replace(/<\/?[^>]+(>|$)/g, "");
+    console.log('result',result);
     if (allInfo === '') {
         allInfoPar = profileHTML;
     } else {
-        allInfoPar = allInfo;
+        allInfoPar = result;
     }
     // console.log('if candidateId true : ', candidateId);
     if (candidateId) {
@@ -638,7 +649,7 @@ async function saveCandidate(authToken, firstName, lastName, contacts = [], allI
                         kanal_zvyazku: contact.kanal_zvyazku
                     })) : [],
                     email_r: emailValue,
-                    lkd_r: lkdValue,
+                    // lkd_r: lkdValue,
                     foto_re: imageId,
                     resume_docx: cvId ? cvId : '',
                     dattime: saveDate,
@@ -649,7 +660,7 @@ async function saveCandidate(authToken, firstName, lastName, contacts = [], allI
                     resume_r: cvId ? cvId : '',
                     code_cv: cvComb,
                     code_cv_dj: profileHTML,
-                    zvidki_kandidat: zvidku,
+                    lkd_r: zvidku,
                     additional_info: additional_info
                     // resume_r: cvId ? cvId : '',
                     // code_cv: cvComb,
@@ -953,13 +964,17 @@ async function checkCandidateId(lastName, authToken, currentUserId, currentVacId
         throw new Error('Failed to check candidate');
     }
     const candidates = await response.json();
+    console.log('candidates',candidates);
+    console.log('currentUserId',currentUserId);
+    console.log('currentVacId',currentVacId);
+
     const foundCandidate = candidates.find(candidate => {
-        const isAddedByCurrentUser = candidate.acf.user_r === currentUserId;
-        const isOnCurrentVacancy = currentVacId === 0 || candidate.acf.id_vac === "0" || candidate.acf.id_vac === currentVacId;
-        // console.log('candidate.acf.user_r',candidate.acf.user_r);
-        // console.log('currentUserId',currentUserId);
-        // console.log('candidate.acf.id_vac',candidate.acf.id_vac);
-        // console.log('currentVacId',currentVacId);
+        const isAddedByCurrentUser = String(candidate.acf.user_r) === String(currentUserId);
+        const isOnCurrentVacancy = currentVacId === 0 || String(candidate.acf.id_vac) === "0" || String(candidate.acf.id_vac) === String(currentVacId);
+        console.log('candidate.acf.user_r',candidate.acf.user_r);
+        console.log('candidate.acf.id_vac',candidate.acf.id_vac);
+        console.log('isAddedByCurrentUser',isAddedByCurrentUser);
+        console.log('isOnCurrentVacancy',isOnCurrentVacancy);
         return isAddedByCurrentUser || isOnCurrentVacancy;
     });
 
@@ -981,12 +996,12 @@ async function getCandidateSalary(lastName, authToken) {
     }
     const candidates = await response.json();
     const foundCandidate = candidates.find(candidate => candidate.title.rendered.toLowerCase() === lastName.toLowerCase());
-    // console.log(foundCandidate.acf);
     return {
         foundCand: foundCandidate ? foundCandidate.acf.zarplata : null,
         foundCandidatez: foundCandidate ? foundCandidate.acf.exp_r : null,
         mova: foundCandidate ? foundCandidate.acf.mova_p : null,
-        kontakti22: foundCandidate ? foundCandidate.acf.kontakti22 : null
+        kontakti22: foundCandidate ? foundCandidate.acf.kontakti22 : null,
+        dattime: foundCandidate ? foundCandidate.acf.dattime : null
     };
 }
 

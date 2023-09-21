@@ -208,13 +208,13 @@ get_header(); ?>
             <div class="cont">
                 <h3>Контакти</h3>
                 <?php if (get_field('telegram')): ?>
-                    <a href="" target="_blank"><span class="img1" style="background-image: url(<?php echo bloginfo('template_url'); ?>/assets/img/rating/telegram.jpg)"></span> <span class="cp_btn" id="bk_telegram"><?php the_field('telegram'); ?></span></a>
+                    <a href="" target="_blank"><span class="img1" style="background-image: url(<?php echo bloginfo('template_url'); ?>/*/assets/img/rating/telegram.jpg)"></span> <span class="cp_btn" id="bk_telegram">*/<?php the_field('telegram'); ?></span></a>
                 <?php endif; ?>
                 <?php if (get_field('viber_r')): ?>
-                    <p><span class="img1 img11" style="background-image: url(<?php echo bloginfo('template_url'); ?>/assets/img/rating/viber.jpg)"></span> <span class="cp_btn" id="bk_viber"><?php the_field('viber_r'); ?></span></p>
+                    <p><span class="img1 img11" style="background-image: url(<?php echo bloginfo('template_url'); ?>/*/assets/img/rating/viber.jpg)"></span> <span class="cp_btn" id="bk_viber">*/<?php the_field('viber_r'); ?></span></p>
                 <?php endif; ?>
                 <?php if (get_field('skype_r')): ?>
-                    <p><span class="img1 img11" style="background-image: url(<?php echo bloginfo('template_url'); ?>/assets/img/rating/skype.jpg)"></span> <span class="cp_btn" id="bk_skype"><?php the_field('skype_r'); ?></span></p>
+                    <p><span class="img1 img11" style="background-image: url(<?php echo bloginfo('template_url'); ?>/*/assets/img/rating/skype.jpg)"></span> <span class="cp_btn" id="bk_skype">*/<?php the_field('skype_r'); ?></span></p>
                 <?php endif; ?>
                 <?php if (get_field('tel_r')): ?>
                     <p><span class="dashicons dashicons-phone"></span> <span class="cp_btn" id="bk_tel"><?php the_field('tel_r'); ?></span></p>

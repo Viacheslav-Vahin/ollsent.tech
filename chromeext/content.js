@@ -5,7 +5,7 @@ btn.innerHTML = "✓";
 btn.style.position = 'fixed';
 btn.style.display = 'none';
 btn.style.top = '55px';
-btn.style.left = '5px';
+btn.style.right = '5px';
 btn.style.width = '55px';
 btn.style.height = '55px';
 btn.style.backgroundColor = '#16a086';
@@ -17,11 +17,11 @@ btnShine.className = "shine";
 let btnInn = document.createElement('span');
 btnInn.className = "checkmark";
 
-let btnPlus = document.createElement('div');
+let btnPlus = document.createElement('button');
 btnPlus.id = "maininfobtnPlus";
 btnPlus.style.position = 'fixed';
 btnPlus.style.top = '65px';
-btnPlus.style.left = '65px';
+btnPlus.style.right = '65px';
 btnPlus.style.width = '35px';
 btnPlus.style.height = '35px';
 btnPlus.style.zIndex = 999999;
@@ -29,7 +29,7 @@ btnPlus.style.backgroundImage = 'url(' + chrome.runtime.getURL('img/Ollsent_CRM.
 btnPlus.style.backgroundSize = 'cover';
 btnPlus.style.backgroundRepeat = 'no-repeat';
 btnPlus.innerHTML = "+";
-btnPlus.style.display = 'flex';
+btnPlus.style.display = 'none';
 btnPlus.style.borderRadius = '3px';
 btnPlus.style.background = '#16a086';
 btnPlus.style.color = '#fff';
@@ -44,13 +44,13 @@ let popup = document.createElement('div'); // Создаем новый div дл
 popup.id = 'mainformWrapper';
 popup.style.position = 'fixed';
 popup.style.top = '115px';
-popup.style.left = '-355px';
+popup.style.right = '-355px';
 popup.style.opacity = '0';
 popup.style.transition = 'all, .3s';
 popup.style.zIndex = 1000;
 popup.style.boxShadow = '0px 0px 3px 0px #16a086';
 popup.innerHTML = `
-<div id="mainform" class="ext-wrapper" style="overflow-y: scroll; overflow-x: hidden; width: 350px; height: 740px; background-color: #fff; padding: 10px; scrollbar-width: thin; scrollbar-color: #16a086 #16a086;">
+<div id="mainform" class="ext-wrapper" style="overflow-y: scroll; overflow-x: hidden; width: 350px; height: 650px; background-color: #fff; padding: 10px 10px 80px 10px; scrollbar-width: thin; scrollbar-color: #16a086 #16a086;">
     <style>
     /* Это для веб-китовых браузеров, таких как Chrome и Safari */
     #mainform {
@@ -171,6 +171,8 @@ input[type=range]::-moz-range-thumb {
 #mainform select,
  #mainform .select2 {
 width: 100% !important;
+height: 37px !important;
+border-radius: 7px !important;
 }
 #mainform input {
 padding: 5px;
@@ -178,6 +180,7 @@ padding: 5px;
     box-shadow: none;
     width: 100%;
     outline: none !important;
+    border-radius: 7px !important;
 }
 .contact-field-group {
 display: flex;
@@ -267,7 +270,12 @@ padding-bottom: 15px;
 color: #fff;
 background-color: #16a086;
 }
-
+.select2-container--default .select2-selection--single,
+.select2-container .select2-search--dropdown .select2-search__field,
+.select2-container .select2-search--dropdown .select2-search__field:focus {
+background: #fff !important;
+background-color: #fff !important;
+}
 #mainform .fields-wrapper .select2-container--default .select2-selection--multiple .select2-selection__choice {
     background-color: #16a086;
     color: #fff;
@@ -329,11 +337,32 @@ font-weight: bold;
         transform: rotate(30deg) translateX(150%);
     }
 }
+#mainformWrapper .select2-container .select2-search--dropdown .select2-search__field, 
+#mainformWrapper .select2-container .select2-selection {    
+    padding: 5px !important;
+        line-height: 1.5;
+    height: auto;
+}   
+#mainformWrapper #region .select2-container--default .select2-selection--multiple .select2-selection__choice,
+#mainformWrapper #pop-prof .select2-container--default .select2-selection--multiple .select2-selection__choice,
+#mainformWrapper #tags .select2-container--default .select2-selection--multiple .select2-selection__choice {
+margin: 0px !important;
+}
+#mainformWrapper .select2-container--default .select2-results > .select2-results__options {
+color: #000 !important;
+}
+#mainformWrapper .select2-container .select2-dropdown {
+    background-color: #fff !important;
+}
+.select2-container .select2-selection--single .select2-selection__rendered {
+    color: #000 !important;
+}
     </style>` +
     '    <h1>Ollsent</h1>\n' +
     '    <div id="candidateInfoPopup" style="display: none;"><button class="closeinfoPopup">✖</button><div id="infoPopupContent"></div></div>\n' +
     '    <div id="candidateInfo" style="display: none;"></div>\n' +
     '    <div id="candidateInfo22" style="display: none;"></div>\n' +
+    '    <div id="date" style="font-size: 12px;"></div>\n' +
     '    <div class="fields-wrapper">\n' +
     '        <div id="vacancy"><h3>Вакансія</h3></div>\n' +
     '        <div id="stage"></div>\n' +
@@ -362,6 +391,11 @@ document.body.appendChild(btnPlus);
 document.body.appendChild(popup);
 document.querySelector('#maininfobtn').appendChild(btnShine);
 document.querySelector('#maininfobtn').appendChild(btnInn);
+let currentURL = window.location.href;
+if (currentURL.includes('linkedin.com')) {
+    let popwinlink = document.querySelector('#artdeco-modal-outlet');
+    popwinlink.style.opacity = 0;
+}
 btn.addEventListener("click", function () {
     chrome.runtime.sendMessage({command: "openPopup"});
 });
@@ -369,6 +403,7 @@ btn.addEventListener("click", function () {
 chrome.storage.local.get(['authToken'], function(result) {
     if (result.authToken) {
         document.getElementById('maininfobtn').style.display = 'flex';
+        document.getElementById('maininfobtnPlus').style.display = 'flex';
     }
 });
 /////////////////////////////////////// main button end //////////////////////////////////
@@ -395,7 +430,6 @@ document.addEventListener('click', function(event) {
     }
 });
 let contactInfoFetched = false;
-let currentURL = window.location.href;
 function saveHist() {
 
 }
@@ -412,7 +446,8 @@ function getFullName() {
             firstName = names.shift();
             lastName = names.join(' ');
         }
-    } else if (currentURL.includes('work.ua')) {
+    }
+    else if (currentURL.includes('work.ua')) {
         fullNameElement = document.querySelector('.add-top-xs');
         if (fullNameElement) {
             let fullName = fullNameElement.innerText;
@@ -420,7 +455,8 @@ function getFullName() {
             firstName = names.shift();
             lastName = names.join(' ');
         }
-    } else if (currentURL.includes('robota.ua')) {
+    }
+    else if (currentURL.includes('robota.ua')) {
         fullNameElement = document.querySelector('.resume-main-wrapper.ng-star-inserted .santa-flex.santa-items-stretch h1 p.copy-wrap');
         if (fullNameElement) {
             let fullName = fullNameElement.textContent.trim();
@@ -433,13 +469,17 @@ function getFullName() {
                 lastName = names[0];
             }
         }
-    } else if (currentURL.includes('djinni.co')) {
+    }
+    else if (currentURL.includes('djinni.co')) {
         fullNameElement = document.querySelector('#candidate_name');
         if (fullNameElement) {
             let fullName = fullNameElement.innerText;
             let names = fullName.split(' ');
             firstName = names.shift();
             lastName = names.join(' ');
+        }  else {
+            firstName = 'Імя';
+            lastName = 'Прізвище';
         }
     }
 
@@ -709,9 +749,10 @@ function getLdlanguages() {
                 let textArray2 = [];
                 let parentElements = nextNextDiv.querySelectorAll('.pvs-list__outer-container .pvs-list .artdeco-list__item.pvs-list__item--line-separated.pvs-list__item--one-column .pvs-entity.pvs-entity--padded.pvs-list__item--no-padding-in-columns .display-flex.flex-column.full-width.align-self-center .display-flex.flex-column.full-width\n');
                 for (let parentElement of parentElements) {
-                    let text = extractTextWithNewLines(parentElement);
+                    let text = extractHTMLWithNewLines(parentElement);
                     textArray2.push(text);
                 }
+                console.log('textArray2', textArray2);
                 return textArray2.join('\n');
             } else {
                 return "No next sibling found";
@@ -738,22 +779,32 @@ function getCvUrl() {
     let cvElement = '';
     if (currentURL.includes('linkedin.com')) {
         cvElement = document.querySelector('.pv-top-card-profile-picture__image');
+        return cvElement.href ? cvElement.href : '';
     }
     if (currentURL.includes('work.ua')) {
-        cvElement = document.querySelector('ul[aria-labelledby="dropdownMenu-1"] .download-resume') || document.querySelector('.js-resume-file-pdf-download');
-    } else if (currentURL.includes('djinni.co')) {
-        cvElement = document.querySelector('#last a[href*="https://cv.djinni.co/*"]');
+        cvElement = document.querySelector('ul[aria-labelledby="dropdownMenu-1"] .download-resume') || document.querySelector('a[href*="/resumedownload/"]') || document.querySelector('.js-resume-file-pdf-download');
+        console.log(document.querySelector('a[href*="/resumedownload/"]'));
+        console.log(cvElement);
+        return cvElement.href ? cvElement.href : '';
+    }
+    if (currentURL.includes('djinni.co')) {
+        // cvElement = document.querySelector('#last a[href="https://cv.djinni.co/*"]');
+        // console.log("cvElement href", cvElement);
         let linkElements = document.querySelectorAll('.alert-link');
-        for (let link of linkElements) {
-            if (link.href.endsWith('.pdf')) {
-                cvElement = link;  // Выведет href каждого элемента с расширением .pdf
+        if (linkElements) {    // Выведет href каждого элемента с расширением .pdf или .doc
+            for (let link of linkElements) {
+                if (link.href.endsWith('.pdf')) {
+                    cvElement = link;  // Выведет href каждого элемента с расширением .pdf
+                    console.log("cvElement", cvElement);
+                }
             }
         }
+        return cvElement ? cvElement.href : '';
     }
     // else if(currentURL.includes('robota.ua')) {
     //     data-id="cv-controls-download-resume-without-contacts"
     // }
-    return cvElement.href ? cvElement.href : '';
+
 }
 
 function getAllInfo() {
@@ -799,26 +850,25 @@ function cvFile() {
         let linkedin = getLinkedin();
         linkedin = linkedin ? linkedin : '';
         let position = getPosition();
-        position = position ? position : '';
+        position = position ? '<h3>Посада</h3><div>' + position + '</div>' : '';
         let country = getCountry();
-        country = country ? country : '';
+        country = country ? '<h3>Локація</h3><div>' + country + '</div>' : '';
         let generalInfo = getGeneralInfo();
-        generalInfo = generalInfo ? generalInfo : '';
+        generalInfo = generalInfo ? '<h3>Основна інформація</h3><div>' + generalInfo + '</div>' : '';
         let aboutinfo = aboutInfo();
-        aboutinfo = aboutinfo ? aboutinfo : '';
+        aboutinfo = aboutinfo ? '<h3>Додаткова інформація</h3><div>' + aboutinfo + '</div>' : '';
         let experience = getExperience();
-        experience = experience ? experience : '';
+        experience = experience ? '<h3>Досвід</h3><div>' + experience + '</div>' : '';
         let education = getEducation();
-        education = education ? education : '';
+        education = education ? '<h3>Навчання</h3><div>' + education + '</div>' : '';
         // let projects = getProjects();
         // projects = projects ? projects : '';
         let languages = getLdlanguages();
-        languages = languages ? languages : '';
+        languages = languages ? '<h3>Мова</h3><div>' + languages + '</div>' : '';
         // let photo = getProfileImageUrl();
         // photo = photo ? photo : '';
 
-        textArray = '<div class="ld-scr"><h1>' + fullName + '</h1><div class="contact-ld"><p>' + email + '</p><p>' + linkedin + '</p></div><div class="anotherinfo"><h3>Посада</h3><p>' + position + '</p><h3>Локація</h3><p>' + country + '</p><h3>Основна інформація</h3><p>' + generalInfo + '</p><h3>Додаткова інформація</h3><p>' + aboutinfo + '</p><h3>Досвід</h3><p>' + experience + '</p><h3>Навчання</h3><p>' + education + '</p><h3>Мова</h3><p>' + languages + '</p></div></div>'
-
+        textArray = '<style>.visually-hidden {display: none} .flex-column {flex-direction: column!important} .justify-space-between { justify-content: space-between!important; } .t-bold {display: block; font-weight: bold; margin-top: 10px; padding-top: 0} .anotherinfo h3{margin-bottom: 0; padding-bottom: 0} .anotherinfo p{margin-bottom: 15px; padding-top: 0}</style><div class="ld-scr"><h1>' + fullName + '</h1><div class="contact-ld"><p>' + email + '</p><p>' + linkedin + '</p></div><div class="anotherinfo">' + position + country + generalInfo + aboutinfo + experience + education + languages + '</p></div></div>'
     } else if (currentURL.includes('robota.ua')) {
         let elements = document.querySelector('.santa-flex-grow.santa-h-full');
         textArray = elements.innerHTML;
@@ -852,8 +902,11 @@ function zvidkuKandudat() {
 // let observer = new MutationObserver(function (mutations) {
 if (currentURL.includes('djinni.co')) {
     setTimeout(function () {
-        let link = document.querySelector('a.userpic-link').href;
-        chrome.runtime.sendMessage({action: 'openTab', url: link});
+        let linkbL = document.querySelector('a.userpic-link');
+        if( linkbL ) {
+            let link = linkbL.href;
+            chrome.runtime.sendMessage({action: 'openTab', url: link});
+        }
     }, 100);
 }
 
@@ -861,6 +914,12 @@ function checkFrom() {
     chrome.storage.local.get(['authToken'], function(result) {
         if (result.authToken) {
             setTimeout(function () {
+                saveButton.setAttribute('disabled', 'disabled');
+                saveButtonPlus.setAttribute('disabled', 'disabled');
+                if (currentURL.includes('linkedin.com')) {
+                    let popwinlink = document.querySelector('#artdeco-modal-outlet');
+                    popwinlink.style.opacity = 0;
+                }
                 let fullName = getFullName();
                 if (fullName.firstName || fullName.lastName) {
                     chrome.runtime.sendMessage({...fullName, action: 'checkCandidate'});
@@ -883,21 +942,51 @@ function checkFrom() {
                             let salary = $('#zarp');
                             let exp = $('#exp-range');
                             let movaSelect = $('#mova-select'); // замените на ваш селект
+                            let date = $('#date')
                             salary.val(response.salary);
                             exp.val(response.exp);
                             if (response.mova) {
                                 let movaId = response.mova[0].ID; // Предполагая, что вы хотите установить первый элемент
                                 movaSelect.val(movaId).trigger('change');
                             }
-                            const contactItems = response.kontakti22.map(item => ({
-                                id: item.kontakt222.ID,
-                                type: item.kontakt222.post_title,
-                                value: item.dannik,
-                                kanal_zvyazku: item.kanal_zvyazku
-                            }));
+                            console.log('response.kontakti22.map',response);
+                            if (response.kontakti22) {
+                                const contactItems = response.kontakti22.map(item => ({
+                                    id: item.kontakt222.ID,
+                                    type: item.kontakt222.post_title,
+                                    value: item.dannik,
+                                    kanal_zvyazku: item.kanal_zvyazku
+                                }));
 
-                            createFieldGroup(contactItems);
+                                const existingContactGroups = document.querySelectorAll('.contact-field-group');
 
+                                let isDifferent = false;
+
+                                existingContactGroups.forEach((group, index) => {
+                                    const select = group.querySelector('select');
+                                    const input = group.querySelector('input[pattern]');
+                                    const checkbox = group.querySelector('input[type="checkbox"]');
+
+                                    if (select.value !== contactItems[index].type ||
+                                        input.value !== contactItems[index].value ||
+                                        checkbox.checked !== contactItems[index].kanal_zvyazku) {
+                                        isDifferent = true;
+                                    }
+                                });
+
+                                if (isDifferent) {
+                                    // Видаляємо існуючі контактні поля
+                                    existingContactGroups.forEach(group => group.remove());
+
+                                    // Створюємо нові контактні поля з даними з відповіді
+                                    createFieldGroup(contactItems);
+                                }
+                            }
+                            if (response.dattime) {;
+                                date.html('кандидата додано: ' + response.dattime);
+                            } else {
+                                date.html('');
+                            }
                         }
                     });
                     let contactButton = '';
@@ -918,6 +1007,12 @@ function checkFrom() {
                             contactButton.click();
                         }, 3000);
                         setTimeout(function () {
+                            if (currentURL.includes('linkedin.com')) {
+                                let popwinlink = document.querySelector('#artdeco-modal-outlet');
+                                popwinlink.style.opacity = 1;
+                            }
+                            saveButton.removeAttribute('disabled');
+                            saveButtonPlus.removeAttribute('disabled');
                             let linkedinLink = document.querySelector('.pv-contact-info__contact-link[href*="linkedin.com"]');
                             let emailLink = document.querySelector('.pv-contact-info__contact-link[href*="mailto:"]');
                             let linkTelegram = document.querySelector('.link-messenger.link-messenger-telegram[href*="https://t.me/"]');
@@ -961,7 +1056,8 @@ function checkFrom() {
                                     closeButton.click();
                                 }
                                 // contactInfoFetched = true;
-                            } else if (linkTelegram || linkViber || linkWhatsapp || linkEmailWork) {
+                            }
+                            else if (linkTelegram || linkViber || linkWhatsapp || linkEmailWork) {
                                 chrome.runtime.sendMessage({action: 'getContactTypes'}, response => {
                                     if (response.action === 'getContactTypesResult') {
                                         let contactTypes = response.contactTypes;
@@ -995,7 +1091,8 @@ function checkFrom() {
                                     }
                                 });
                                 // contactInfoFetched = true;
-                            } else if (linkTelegramRo || linkViberRo || linkWhatsappRo || linkEmailRo || linkPhoneRo) {
+                            }
+                            else if (linkTelegramRo || linkViberRo || linkWhatsappRo || linkEmailRo || linkPhoneRo) {
                                 chrome.runtime.sendMessage({action: 'getContactTypes'}, response => {
                                     if (response.action === 'getContactTypesResult') {
                                         let contactTypes = response.contactTypes;
@@ -1043,8 +1140,11 @@ function checkFrom() {
                                 // contactInfoFetched = true;
                             }
                         }, 6000);
-                    } else {
+                    }
+                    else {
                         setTimeout(function () {
+                            saveButton.removeAttribute('disabled');
+                            saveButtonPlus.removeAttribute('disabled');
                             let linkTelegram = document.querySelector('.link-messenger.link-messenger-telegram[href*="https://t.me/"]');
                             let linkViber = document.querySelector('.link-messenger.link-messenger-viber[href*="viber://chat?number="]');
                             let linkWhatsapp = document.querySelector('.link-messenger.link-messenger-whatsapp[href*="wa.me/"]');
@@ -1096,7 +1196,7 @@ function checkFrom() {
                                     }
                                 });
                                 // contactInfoFetched = true;
-                            } else if (linkTelegramRo || linkViberRo || linkWhatsappRo || linkEmailRo || linkPhoneRo) {
+                            } else if (linkTelegramRo || linkViberRo || linkWhatsappRo || linkEmailRo || linkPhoneRo) { // robota.ua
                                 chrome.runtime.sendMessage({action: 'getContactTypes'}, response => {
                                     if (response.action === 'getContactTypesResult') {
                                         let contactTypes = response.contactTypes;
@@ -1142,7 +1242,7 @@ function checkFrom() {
                                     }
                                 });
                                 // contactInfoFetched = true;
-                            } else if (linkTelegramDj || linkEmailDj || skypeLinkDj || linkedinLinkDj || linkPhoneDj || linkViberDj) {
+                            } else if (linkTelegramDj || linkEmailDj || skypeLinkDj || linkedinLinkDj || linkPhoneDj || linkViberDj) {  // djinni.co
                                 chrome.runtime.sendMessage({action: 'getContactTypes'}, response => {
                                     if (response.action === 'getContactTypesResult') {
                                         let contactTypes = response.contactTypes;
@@ -1233,11 +1333,11 @@ const observer = new MutationObserver(checkURL);
 observer.observe(document, {subtree: true, childList: true});
 
 btn.onclick = function () {
-    if (popup.style.left === '-355px') {
-        popup.style.left = '5px';
+    if (popup.style.right === '-355px') {
+        popup.style.right = '5px';
         popup.style.opacity = '1';
     } else {
-        popup.style.left = '-355px'; // Скрываем попап
+        popup.style.right = '-355px'; // Скрываем попап
         popup.style.opacity = '0';
     }
 };
@@ -1442,6 +1542,10 @@ chrome.runtime.sendMessage({action: 'showTags'}, function (response) {
 let saveButton = document.getElementById('save-button');
 let saveButtonPlus = document.getElementById('maininfobtnPlus');
 function handleClick() {
+    saveButton.setAttribute('disabled', 'disabled');
+    saveButton.style.background = '#ffae00';
+    saveButtonPlus.setAttribute('disabled', 'disabled');
+    saveButtonPlus.style.background = '#ffae00';
     let maininfob = document.getElementById('maininfobtn');
     maininfob.style.background = '#0081ff';
     maininfob.style.transform = 'rotate(360deg)';
@@ -1526,13 +1630,24 @@ function handleClick() {
         ...formValues
     }, function (response) {
         if (!response) {
+            saveButton.removeAttribute('disabled');
+            saveButton.style.background = '#fff';
+            saveButtonPlus.removeAttribute('disabled');
+            saveButtonPlus.style.background = '#16a086';
             return;
         }
         if (chrome.runtime.lastError) {
             console.error(chrome.runtime.lastError);
+            saveButton.removeAttribute('disabled');
+            saveButton.style.background = '#fff';
+            saveButtonPlus.removeAttribute('disabled');
+            saveButtonPlus.style.background = '#16a086';
             return;
         }
-
+        saveButton.removeAttribute('disabled');
+        saveButton.style.background = '#fff';
+        saveButtonPlus.removeAttribute('disabled');
+        saveButtonPlus.style.background = '#16a086';
         // console.log("Message sent successfully");  // Log successful message
         // console.log(response);  // Log the recipient's response
         let maininfob = document.getElementById('maininfobtn');
@@ -1588,7 +1703,6 @@ function handleClick() {
 }
 saveButton.addEventListener('click', handleClick);
 saveButtonPlus.addEventListener('click', handleClick);
-
 $('select').on('select2:select', function (e) {
     let selectedOptions = $(this).val();  // Получаем массив выбранных значений
     if (selectedOptions.length > 1 && selectedOptions.includes('all')) {
@@ -1597,6 +1711,10 @@ $('select').on('select2:select', function (e) {
             selectedOptions.splice(index, 1);
         }
         $(this).val(selectedOptions).trigger('change');
+        var select2Instance = $(this).data('select2');
+
+        // Очищуємо поле вводу
+        select2Instance.$search.val('');
     }
 });
 $(document).on('mousedown', function (e) {
@@ -1645,7 +1763,8 @@ function showPopupWithPosts(posts) {
     let popup = document.getElementById('pop-prof');
     popup.appendChild(select);
     $('#language-select').select2({
-        closeOnSelect: false,
+        closeOnSelect: true,
+        dropdownParent: $('#pop-prof')  // Исправьте это, чтобы сделать Select2 видимым
     });
     let savedValues = localStorage.getItem('selectedValues');
     if (savedValues) {
@@ -1674,6 +1793,7 @@ function showPopupWithNoitPosts(posts) {
     popup.appendChild(select);
     $('#noit-select').select2({
         closeOnSelect: false,
+        dropdownParent: $('#pop-noit')  // Исправьте это, чтобы сделать Select2 видимым
     });
     let savedNoValues = localStorage.getItem('noitValues');
     if (savedNoValues) {
@@ -1689,6 +1809,7 @@ function showPopupWithNoitPosts(posts) {
 function showZarplata() {
     let zarplataInput = document.createElement('input');
     zarplataInput.id = 'zarp';
+    zarplataInput.pattern = "[0-9]{3,}";
     let popup = document.getElementById('pop-zp');
     popup.appendChild(zarplataInput);
 }
@@ -1696,7 +1817,6 @@ function showZarplata() {
 function showLanguageTypes(posts) {
     let select = document.createElement('select');
     select.id = 'mova-select';
-    select.setAttribute('multiple', 'multiple');  // Добавьте эту строку, чтобы сделать Select2 мультиселектом
     posts.forEach(post => {
         let option = document.createElement('option');
         option.value = post.id;
@@ -1706,7 +1826,8 @@ function showLanguageTypes(posts) {
     let popup = document.getElementById('pop-mova');
     popup.appendChild(select);
     $('#mova-select').select2({
-        closeOnSelect: false,
+        closeOnSelect: true,
+        dropdownParent: $('#pop-mova')  // Исправьте это, чтобы сделать Select2 видимым
     });
 }
 
@@ -1724,6 +1845,7 @@ function showRegion(posts) {
     popup.appendChild(select);
     $('#reg-select').select2({
         closeOnSelect: false,
+        dropdownParent: $('#region')  // Исправьте это, чтобы сделать Select2 видимым
     });
 }
 
@@ -1746,6 +1868,7 @@ function showVacancy(posts) {
 
         $('#vac-select').select2({
             closeOnSelect: true,
+            dropdownParent: $('#vacancy'),  // Исправьте это, чтобы сделать Select2 видимым
             templateResult: function (data) {
                 // console.log('data.id', data);
                 if (data.id === null || !data.element || data.element.className.indexOf('optgroup') > -1) {
@@ -1787,6 +1910,7 @@ function showVacancyStage(posts) {
     popup.appendChild(select);
     $('#stage-select').select2({
         closeOnSelect: true,
+        dropdownParent: $('#stage')  // Исправьте это, чтобы сделать Select2 видимым
     });
     let savedValue = localStorage.getItem('selectedVacancyStage');
     if (savedValue) {
@@ -1812,6 +1936,7 @@ function showTags(posts) {
     popup.appendChild(select);
     $('#tags-select').select2({
         closeOnSelect: false,
+        dropdownParent: $('#tags')  // Исправьте это, чтобы сделать Select2 видимым
     });
 }
 
@@ -1839,6 +1964,7 @@ function createFieldGroup(contacts) {
             }
             let contactValue = contact.value ? contact.value.replace('mailto:', '') : "";
             inputElement.value = contactValue;
+            inputElement.pattern = "[a-zA-Z0-9]{3,}";
             fieldGroup.appendChild(selectElement);
             fieldGroup.appendChild(inputElement);
             fieldGroup.appendChild(checkboxElement);
@@ -1856,6 +1982,7 @@ function createUserFieldGroup() {
     let selectElement = document.createElement('select');
     let inputElement = document.createElement('input');
     let checkboxElement = document.createElement('input');
+    inputElement.pattern = "[a-zA-Z0-9]{3,}";
     checkboxElement.type = 'checkbox';
     checkboxElement.name = 'kanal_zvyazku';
     checkboxElement.id = 'kanal_zvyazku';

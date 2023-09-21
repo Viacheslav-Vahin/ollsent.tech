@@ -8,6 +8,7 @@ if (!current_user_can('administrator') && !current_user_can('editor') && !curren
 }
 acf_form_head();
 get_header();
+$current_user_id = get_current_user_id();
 ?>
     <!--    <script>-->
     <!--        document.addEventListener("DOMContentLoaded", function () {-->
@@ -28,35 +29,45 @@ get_header();
         <div class="modalBg"></div>
         <div class="modalSotrIn">
             <?php
-            $recomendData = new WP_Query(array(
-                'post_type' => 'sotrudniki',
-                'post_per_page' => -1,
-                'orderby' => 'title',
-                'order' => 'ASC',
-//                        'author' => get_current_user_id(),
-                'meta_query' => array(
-                    array(
-                        'key' => 'id_s',
-                        'compare' => '=',
-                        'value' => get_current_user_id()
-                    )
-                )
-            ));
-            while ($recomendData->have_posts()) {
-                $recomendData->the_post();
-
-                ?><span id="cutask" class="dnone"><?php $curUsr = the_id(); ?></span>
+//            $recomendData = new WP_Query(array(
+//                'post_type' => 'sotrudniki',
+//                'post_per_page' => -1,
+//                'orderby' => 'title',
+//                'order' => 'ASC',
+////                        'author' => get_current_user_id(),
+//                'meta_query' => array(
+//                    array(
+//                        'key' => 'id_s',
+//                        'compare' => '=',
+//                        'value' => get_current_user_id()
+//                    )
+//                )
+//            ));
+//            while ($recomendData->have_posts()) {
+//                $recomendData->the_post();
+//
+//                ?><!--<span id="cutask" class="dnone">--><?php //$curUsr = the_id(); ?><!--</span>-->
                 <?php
                 $unique_id = uniqid();
+
                 acf_form(array(
-                    'new_post' => true,
+                    'post_id' => 'user_' . $current_user_id,
                     'form_attributes' => array(
-                        'id' => 'acf-form-' . $unique_id,
+                        'id' => 'acf-form-' . uniqid(),
                     ),
                 ));
+//                acf_form(array(
+//                    'new_post' => true,
+//                    'form_attributes' => array(
+//                        'id' => 'acf-form-' . $unique_id,
+//                    ),
+//                ));
+//            }
+//            //            posts_nav_link();
+//            wp_reset_postdata();
+            if (is_user_logged_in()) {
+            echo '<a href="' . esc_url(wp_logout_url()) . '" class="logutPopup">Вийти</a>';
             }
-            //            posts_nav_link();
-            wp_reset_postdata();
             ?>
             <button class="passpop-btn">Змінити пароль</button>
             <div class="ppop-wr" style="display: none;">
@@ -94,37 +105,37 @@ get_header();
             <div class="vac_wrap">
                 <div class="left_vac left2">
                     <div class="fimg simg">
-                        <?php
-                        $recomendData = new WP_Query(array(
-                            'post_type' => 'sotrudniki',
-                            'post_per_page' => -1,
-                            'orderby' => 'title',
-                            'order' => 'ASC',
-//                        'author' => get_current_user_id(),
-                            'meta_query' => array(
-                                array(
-                                    'key' => 'id_s',
-                                    'compare' => '=',
-                                    'value' => get_current_user_id()
-                                )
-                            )
-                        ));
-                        while ($recomendData->have_posts()) {
-                            $recomendData->the_post();
-
-                            ?><span id="cutask" class="dnone"><?php $curUsr = the_id(); ?></span>
+<!--                        --><?php
+//                        $recomendData = new WP_Query(array(
+//                            'post_type' => 'sotrudniki',
+//                            'post_per_page' => -1,
+//                            'orderby' => 'title',
+//                            'order' => 'ASC',
+////                        'author' => get_current_user_id(),
+//                            'meta_query' => array(
+//                                array(
+//                                    'key' => 'id_s',
+//                                    'compare' => '=',
+//                                    'value' => get_current_user_id()
+//                                )
+//                            )
+//                        ));
+//                        while ($recomendData->have_posts()) {
+//                            $recomendData->the_post();
+//
+//                            ?><!--<span id="cutask" class="dnone">--><?php //$curUsr = the_id(); ?><!--</span>-->
                             <?php
                             $unique_id = uniqid();
                             acf_form(array(
-                                'new_post' => true,
+                             'post_id' => 'user_' . $current_user_id,
                                 'fields' => array('foto'),
                                 'form_attributes' => array(
                                     'id' => 'acf-form-' . $unique_id,
                                 ),
                             ));
-                        }
-                        //            posts_nav_link();
-                        wp_reset_postdata();
+//                        }
+//                        //            posts_nav_link();
+//                        wp_reset_postdata();
                         ?>
                     </div>
                     <div class="sotrAllInfo">
@@ -176,6 +187,9 @@ get_header();
                             <div class="lMenuW myClients">
                                 <h4><span class="dashicons dashicons-portfolio"></span><?php the_field('mo_klinti'); ?>
                                 </h4>
+                            </div>
+                            <div class="lMenuW myTeamenu">
+                                <h4><span class="dashicons dashicons-portfolio"></span><?php the_field('mo_team'); ?></h4>
                             </div>
                             <div class="lMenuW myO">
                                 <h4>
@@ -270,32 +284,33 @@ get_header();
                 <section class="sotr_personal mpr">
                     <h5 class="myTitle">Мої дані</h5>
                     <?php
-                    $recomendData = new WP_Query(array(
-                        'post_type' => 'sotrudniki',
-                        'post_per_page' => -1,
-                        'orderby' => 'title',
-                        'order' => 'ASC',
-//                        'author' => get_current_user_id(),
-                        'meta_query' => array(
-                            array(
-                                'key' => 'id_s',
-                                'compare' => '=',
-                                'value' => get_current_user_id()
-                            )
-                        )
-                    ));
-                    while ($recomendData->have_posts()) {
-                        $recomendData->the_post();
-                        $rec_name = get_field('rec_name');
-                        $rec_lastname = get_field('rec_lastname');
-                        $data_rozhdeniya = get_field('data_rozhdeniya');
-                        $locac = get_field('locac');
-                        $rec_allcont = get_field('rec_allcont');
-                        $zagolovok_r = get_field('zagolovok_r');
-                        $dodatkova_informacziya_tekst = get_field('dodatkova_informacziya_tekst');
-                        $zrobiti_publichniminfo = get_field('zrobiti_publichniminfo');
-                        $dodati_fajl = get_field('dodati_fajl');
-                        $zrobiti_publichnimfile = get_field('zrobiti_publichnimfile');
+//                    $recomendData = new WP_Query(array(
+//                        'post_type' => 'sotrudniki',
+//                        'post_per_page' => -1,
+//                        'orderby' => 'title',
+//                        'order' => 'ASC',
+////                        'author' => get_current_user_id(),
+//                        'meta_query' => array(
+//                            array(
+//                                'key' => 'id_s',
+//                                'compare' => '=',
+//                                'value' => get_current_user_id()
+//                            )
+//                        )
+//                    ));
+//                    while ($recomendData->have_posts()) {
+//                        $recomendData->the_post();
+                        $rec_name = get_field('rec_name', 'user_' . $current_user_id);
+                        $rec_lastname = get_field('rec_lastname', 'user_' . $current_user_id);
+                        $data_rozhdeniya = get_field('data_rozhdeniya', 'user_' . $current_user_id);
+                        $email5 = get_field('e-mail5', 'user_' . $current_user_id);
+                        $locac = get_field('locac', 'user_' . $current_user_id);
+                        $rec_allcont = get_field('rec_allcont', 'user_' . $current_user_id);
+                        $zagolovok_r = get_field('zagolovok_r', 'user_' . $current_user_id);
+                        $dodatkova_informacziya_tekst = get_field('dodatkova_informacziya_tekst', 'user_' . $current_user_id);
+                        $zrobiti_publichniminfo = get_field('zrobiti_publichniminfo', 'user_' . $current_user_id);
+                        $dodati_fajl = get_field('dodati_fajl', 'user_' . $current_user_id);
+                        $zrobiti_publichnimfile = get_field('zrobiti_publichnimfile', 'user_' . $current_user_id);
                         ?>
                         <div class="top-name">
                             <div class="col-left">
@@ -311,9 +326,10 @@ get_header();
                                 <div class="contWr">
                                     <h3>Контакти: </h3>
                                     <?php
+                                    echo '<a href="javascript:void(0);" class="spec1 cp_btn bk_email" id="' . uniqid() . '"><span style="display: inline-block !important; position: relative; padding-left: 45px; padding-top: 10px; font-size: 14px; font-weight: bold;">' . $email5 . '</span></a>';
                                     $trtr = array();
-                                    if (have_rows('rec_allcont')): // проверка, есть ли строки в повторителе 'kontakti22'
-                                        while (have_rows('rec_allcont')): the_row(); // если есть строки, начинаем цикл
+                                    if (have_rows('rec_allcont', 'user_' . $current_user_id)): // проверка, есть ли строки в повторителе 'kontakti22'
+                                        while (have_rows('rec_allcont', 'user_' . $current_user_id)): the_row(); // если есть строки, начинаем цикл
                                             $icon = get_sub_field('ikonka');
                                             $contactData = get_sub_field('dannir');
                                             $kontakt222 = get_sub_field('rec_cont');
@@ -337,32 +353,32 @@ get_header();
                             </div>
                             <div class="col-fw">
                                 <?php
-                                $hero = get_field('dodatkova_informacziyar');
+                                $hero = get_field('dodatkova_informacziyar', 'user_' . $current_user_id);
                                 if( $hero ): ?>
 
-                                <?php if ($hero['zagolovok_r']): ?>
+
                                     <h3><?php echo $hero['zagolovok_r']; ?>:</h3>
                                     <div class="addinf">
                                         <p><?php echo $hero['dodatkova_informacziya_tekst']; ?></p>
                                     </div>
-                                <?php endif; ?>
+
                                 <h3>Завантажити файл:</h3>
                                 <a href="<?php echo $hero['dodati_fajl']['url']; ?>"><img src="<?php echo bloginfo('template_url'); ?>/assets/img/file.png"
                                                                                           alt="settings"/><?php echo $hero['dodati_fajl']['title']; ?></a>
                                 <?php endif; ?>
                             </div>
                         </div>
-                        <?php
-                    }
-                    //                        $unique_id = uniqid();
-                    //                        acf_form(array(
-                    //                        'new_post' => true,
-                    //                            'form_attributes' => array(
-                    //                                'id' => 'acf-form-' . $unique_id,
-                    //                            ),
-                    //                            ));
-                    //                    }
-                    wp_reset_postdata();
+<!--                        --><?php
+//                    }
+//                    //                        $unique_id = uniqid();
+//                    //                        acf_form(array(
+//                    //                        'new_post' => true,
+//                    //                            'form_attributes' => array(
+//                    //                                'id' => 'acf-form-' . $unique_id,
+//                    //                            ),
+//                    //                            ));
+//                    //                    }
+//                    wp_reset_postdata();
                     ?>
 
                 </section>
@@ -1369,7 +1385,7 @@ get_header();
                                     <?php the_field('riven_anglijsko'); ?>
                                 </div>
                                 <div class="vakprior">
-                                    <?php $hto_vydalyv = $current_user->first_name . ' ' . $current_user->last_name; ?>
+                                    <?php $hto_vydalyv = $current_user_id->first_name . ' ' . $current_user_id->last_name; ?>
                                 </div>
                                 <div class="vakprior">
                                     <?php the_field('prioritetnist_vakansi'); ?>
@@ -1544,6 +1560,252 @@ get_header();
                         wp_reset_postdata();
                         ?>
                     </div>
+                </div>
+                <div class="myTeam">
+                    <div class="sti si clisi search-container">
+                        <div class="cl-search">
+                            <input class="sticl i0" type="text" class="myInput" id="i02"
+                                   placeholder="Шукати по тексту"/>
+                            <button id="filterToggle">
+                                <img src="<?php echo bloginfo('template_url'); ?>/assets/img/settings.png"
+                                     alt="settings"/>
+                            </button>
+                        </div>
+                        <a class="invite-form">Запросити</a>
+                        <div class="invFormWraper">
+                            <div class="invBg"></div>
+                            <div id="invForm">
+                                <div class="css-1lutgcs" tabindex="-1">
+                                    <div class="css-1xhj18k">
+                                        <button class="css-1sl2dxd closeinvite" tabindex="0" type="button">
+                                            <span class="css-w0pj6f">X</span>
+                                        </button>
+                                    </div>
+                                    <div class="css-127jhi8">
+                                        <p class="css-kbjcjj">Запросити співробітників</p>
+                                    </div>
+                                    <form method="post" action="" id="inviteForm">
+                                        <div class="user-inputs-wrapper">
+                                        <div class="user-inputs">
+                                            <input type="email" name="email[]" placeholder="Email" required>
+                                            <input type="text" name="first_name[]" placeholder="Ім'я" required>
+                                            <input type="text" name="last_name[]" placeholder="Прізвище" required>
+                                            <?php
+                                            global $wp_roles;
+                                            $editable_roles = $wp_roles->roles;
+                                                ?>
+                                            <select id="role_select" name="user_role[]">
+                                                <?php
+                                                foreach ($editable_roles as $role => $details) {
+                                                    echo '<option value="' . esc_attr($role) . '">' . translate_user_role($details['name']) . '</option>';
+                                                }
+                                                ?>
+                                                <option value="custom">Спеціальна роль</option>
+                                            </select>
+
+                                            <input type="text" name="custom_role_name[]" placeholder="Назва ролі">
+                                        </div>
+                                        </div>
+                                        <button type="button" id="addMore">Додати</button>
+                                        <input type="submit" name="submit_invite" value="Надіслати запрошення">
+                                    </form>
+                                    <?php
+                                    if(isset($_POST['submit_invite'])) {
+                                        $emails = $_POST['email'];
+                                        $first_names = $_POST['first_name'];
+                                        $last_names = $_POST['last_name'];
+                                        $roles = $_POST['user_role'];
+                                        $custom_role_names = $_POST['custom_role_name'];
+
+                                        // Получаем сообщение из настройки
+                                        $welcome_message_template = get_option('welcome_message', '');
+
+                                        for($i = 0; $i < count($emails); $i++) {
+                                            $email = sanitize_email($emails[$i]);
+                                            $first_name = sanitize_text_field($first_names[$i]);
+                                            $last_name = sanitize_text_field($last_names[$i]);
+
+                                            // Проверяем, существует ли пользователь с таким email
+                                            if(email_exists($email)) {
+                                                echo 'Користувач з таким email вже існує.';
+                                                continue;
+                                            }
+
+                                            // Определяем роль
+                                            $selected_role = $roles[$i];
+                                            if ($selected_role === 'custom') {
+                                                $custom_role_slug = sanitize_title($custom_role_names[$i]); // создаем уникальный slug для роли
+                                                $custom_role_display_name = sanitize_text_field($custom_role_names[$i]); // отображаемое имя роли
+                                                add_role($custom_role_slug, $custom_role_display_name, array('read' => true));
+                                                $selected_role = $custom_role_slug;
+                                            }
+
+                                            // Создаем нового пользователя
+                                            $user_id = wp_insert_user(array(
+                                                'user_login' => $email,
+                                                'user_email' => $email,
+                                                'first_name' => $first_name,
+                                                'last_name' => $last_name,
+                                                'user_pass' => wp_generate_password(), // генерируем случайный пароль
+                                                'role' => $selected_role // используем выбранную роль
+                                            ));
+
+                                            if(!is_wp_error($user_id)) {
+                                                // Пользователь успешно создан, отправляем инвайт
+                                                $user_data = get_userdata($user_id);
+                                                $key = get_password_reset_key($user_data);
+                                                $reset_pass_link = network_site_url("wp-login.php?action=rp&key=$key&login=" . rawurlencode($user_data->user_login), 'login');
+                                                $message = str_replace('%link%', $reset_pass_link, $welcome_message_template);
+                                                wp_mail($email, 'Вітаємо у Ollsent!', $message);
+
+                                                // Сохраняем ID текущего пользователя (отправителя инвайта) в метаполях нового пользователя
+                                                $current_user_id = get_current_user_id();
+                                                update_user_meta($user_id, 'invited_by', $current_user_id);
+
+                                                echo 'Користувача сворено успішно. Запрошення надічлано';
+                                            } else {
+                                                echo 'Помилка при створенні користувача: ' . $user_id->get_error_message();
+                                            }
+                                        }
+                                    }
+                                    ?>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                    <div class="myCandW mch oh">
+                        <p>Ім'я Прізвище</p>
+                        <p>Дата народження</p>
+                        <p>Країна</p>
+                        <p>Email</p>
+                        <p>Роль</p>
+                    </div>
+<!--                        --><?php
+////                        $recomendData = new WP_Query(array(
+////                            'post_type' => 'sotrudniki',
+////                            'post_per_page' => -1,
+////                            'orderby' => 'title',
+////                            'order' => 'ASC',
+////                            'meta_query' => array(
+////                                array(
+////                                    'key' => 'group_id_s',
+////                                    'compare' => '=',
+////                                    'value' => get_current_user_id()
+////                                )
+////                            )
+////                        ));
+////                        while ($recomendData->have_posts()) {
+//                            $recomendData->the_post();
+//                            $rec_name = get_field('rec_name', 'user_' . $current_user_id);
+//                            $rec_fot = get_field('foto', 'user_' . $current_user_id);
+//                            $data_rozhdeniya = get_field('data_rozhdeniya', 'user_' . $current_user_id);
+//                            $locac = get_field('locac', 'user_' . $current_user_id);
+//                            $e_mail5 = get_field('e-mail5', 'user_' . $current_user_id);
+//                            $dolzhnost = get_field('dolzhnost', 'user_' . $current_user_id);
+//                            ?>
+                        <?php
+                        $invited_users = get_users(array(
+                            'meta_key' => 'invited_by',
+                            'meta_value' => $current_user_id
+                        ));
+                        function display_capability_checkbox($user_id, $capability, $label) {
+                            $user = new WP_User($user_id);
+                            $is_checked = $user->has_cap($capability) ? 'checked' : '';
+                            echo '<input type="checkbox" name="' . $capability . '" value="1" ' . $is_checked . '> ' . $label . '<br>';
+                        }
+                        foreach ($invited_users as $user) {
+                            $user_id = $user->ID; // Получаем ID приглашенного пользователя
+                            $rec_name = get_field('rec_name', 'user_' . $user_id);
+                            if (!$rec_name) { // Если rec_name не установлено
+                                $rec_name = $user->display_name; // Используем имя пользователя по умолчанию
+                            }
+                            $rec_fot = get_field('foto', 'user_' . $user_id);
+                            $data_rozhdeniya = get_field('data_rozhdeniya', 'user_' . $user_id);
+                            $locac = get_field('locac', 'user_' . $user_id);
+                            $e_mail5 = get_field('e-mail5', 'user_' . $user_id);
+                            $dolzhnost = get_field('dolzhnost', 'user_' . $user_id);
+                            if (!$dolzhnost) { // Если dolzhnost не установлено
+                                $user_roles = $user->roles;
+                                $role_name = translate_user_role( ucfirst($user_roles[0]) ); // Получаем переведенное имя роли
+                                $dolzhnost = $role_name;
+                            }
+                        ?>
+                    <div class="myusers">
+
+                        <div class="topname">
+                            <div id="user-settings">
+                                <div class="settings-icon"></div>
+                                <div class="settings-modal">
+                                    <ul>
+                                        <li><a href="<?php echo esc_url(home_url('/user-profile?user_id=' . $user_id)); ?>"><i class="fas fa-user"></i> Профіль</a></li>
+                                        <li><a href="javascript:void(0);"><i class="fas fa-tasks"></i> Поставити завдання</a></li>
+                                        <li><a href="javascript:void(0);"><i class="fas fa-comments"></i> Написати в чат</a></li>
+                                        <li><a href="javascript:void(0);" class="edit-capabilities" data-user-id="<?php echo $user_id; ?>"><i class="fas fa-user-cog"></i> Доступи</a></li>
+                                        <li><a href="javascript:void(0);"><i class="fas fa-exchange-alt"></i> Передати справи</a></li>
+                                        <li><a href="javascript:void(0);"><i class="fas fa-user-times"></i> Звільнити</a></li>
+                                        <li><a href="javascript:void(0);" class="transfer-admin" data-user-id="<?php echo $user->ID; ?>"><i class="fas fa-user-tie"></i> Призначити адміністратором</a></li>
+
+                                    </ul>
+                                    <div id="capabilities-popup-<?php echo $user_id; ?>" style="display:none;" data-teamuid="<?php echo $user_id ?>">
+                                        <?php
+                                        echo '<form id="capabilities-form">';
+
+                                        // Группа "Кандидаты"
+                                        echo '<div class="capabilities-group">';
+                                        echo '<h4>Кандидати</h4>';
+                                        display_capability_checkbox($user, 'delete_candidates', 'Видаляти кандидатів');
+                                        display_capability_checkbox($user, 'publish_candidates', 'Додавати кандидатів');
+                                        display_capability_checkbox($user, 'add_vacancys', 'Додавати вакансії');
+                                        display_capability_checkbox($user, 'delete_vacancys', 'Видаляти вакансії');
+                                        echo '</div>';
+
+                                        // Группа "Клиенты"
+                                        echo '<div class="capabilities-group">';
+                                        echo '<h4>Клієнти</h4>';
+                                        display_capability_checkbox($user, 'delete_clients', 'Видаляти клієнтів');
+                                        display_capability_checkbox($user, 'add_clients', 'Додавати клієнтів');
+                                        echo '</div>';
+
+                                        // Группа "Пользователи"
+                                        echo '<div class="capabilities-group">';
+                                        echo '<h4>Користувачі</h4>';
+                                        display_capability_checkbox($user, 'delete_users', 'Видаляти користувачів');
+                                        display_capability_checkbox($user, 'create_users', 'Додавати користувачів');
+                                        display_capability_checkbox($user, 'edit_users', 'Редагувати користувачів як адмін');
+                                        display_capability_checkbox($user, 'assign_client_responsibility', 'Назначати відповідального за клієнта');
+                                        echo '</div>';
+
+                                        echo '<input type="hidden" name="user_id" value="' . $user_id . '">';
+                                        echo '</form>';
+
+
+                                        ?>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="guidlogo" style="background: url(<?php echo esc_url($rec_fot); ?>)"></div>
+                            <div class="guidinfo">
+                                <div><h3><a href="<?php echo esc_url(home_url('/user-profile/' . $user_id)); ?>"><?php echo esc_html($rec_name); ?></a></h3></div>
+                                <?php
+                                $last_login = get_user_meta($user_id, 'last_login', true);
+                                $online_status = (time() - strtotime($last_login) < 10 * 60) ? '<span style="color: green">Онлайн</span>' : '<span style="color: red"> Офлайн</span>';
+                                echo '<div class="guidstatus">' . $online_status . '</div>';
+                                ?>
+                            </div>
+                        </div>
+                        <div class="guidbday"><?php echo esc_html($data_rozhdeniya); ?></div>
+                        <div class="guidcountry"><?php if($locac): ?>
+                                <span><?php echo esc_html($locac->post_title); ?></span>
+                            <?php endif; ?></div>
+                        <div class="guidemail"><?php echo esc_html($e_mail5); ?></div>
+                        <div class="guidrole"><?php echo esc_html($dolzhnost); ?></div>
+                    </div>
+    <?php } ?>
+<!--                            --><?php
+//                        }
+//                        wp_reset_postdata();
+//                        ?>
+
                 </div>
 
                 <div class="myOffers">

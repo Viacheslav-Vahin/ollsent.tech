@@ -1277,9 +1277,9 @@
             ?>
             <!--        <a data-popup="open" class="vacancy_menu">Добавить кандидата</a>-->
             <?php
-            if (!is_user_logged_in()) { ?>
+            if (!is_user_logged_in() || !current_user_can('publish_candidates')) { ?>
                 <a class="vacancy_menu" href="<?php echo esc_url(site_url('/wp-login.php')); ?>">Додати кандидата</a>
-            <?php } elseif (is_user_logged_in() && (in_array('freelancer', $user_roles, true) || in_array('role_rekruter', $user_roles, true) || in_array('timlid', $user_roles, true) || in_array('administrator', $user_roles, true) || in_array('editor', $user_roles, true))) { ?>
+            <?php } elseif (is_user_logged_in() && (in_array('freelancer', $user_roles, true) || in_array('role_rekruter', $user_roles, true) || in_array('timlid', $user_roles, true) || in_array('administrator', $user_roles, true) || in_array('editor', $user_roles, true)) && current_user_can('publish_candidates')) { ?>
                 <a data-popup="open" class="vacancy_menu addc1">Додати кандидата</a>
             <?php } elseif (is_user_logged_in() && in_array('client', $user_roles, true)) { ?>
                 <a data-popup="open" class="vacancy_menu addVacClick">Додати вакансію<span
@@ -1365,7 +1365,7 @@
                         if (get_field('foto')) {
                             ?>
                             <div class="admphoto"
-                                 style="background: url(<?php echo get_field('foto') ?>); background-position: center; background-size: cover; background-repeat: no-repeat; border-radius: 50%; width: 40px; height: 40px;"></div>
+                                 style="background: url(<?php echo get_field('foto') ?>); background-position: center; background-size: cover; background-repeat: no-repeat; border-radius: 50%; width: 30px; height: 30px;"></div>
                             <?php
                         } else { ?>
                             <img src="<?php echo bloginfo('template_url'); ?>/assets/img/adminpanel.png">
@@ -1375,10 +1375,15 @@
                     ?>
                 </span>
                     </a>
+                    <div id="subscriptionForm">
+                        <div class="subscrWrapper">
+                            <?php echo do_shortcode('[liqpay]')?>
+                        </div>
+                    </div>
                 <?php }
 
                 if (!is_user_logged_in()) { ?>
-                    <a href="<?php echo wp_login_url(); ?>" class="dp_login">Увійти</a>
+                    <a href="<?php echo wp_login_url( site_url('/rekruter/') ); ?>" class="dp_login">Увійти</a>
                     <a href="javasccript:void(0);" class="dp_login" id="openReg">Спробувати Безкоштовно</a>
                     <!--                <a href="--><?php //echo esc_url(site_url('/wp-signup.php')); ?><!--" class="dp_register">Register</a>-->
                     <!--                <a href="--><?php //echo wp_registration_url(); ?><!--">Войти</a>-->

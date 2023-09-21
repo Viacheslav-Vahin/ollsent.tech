@@ -1,4 +1,159 @@
 <?php
+require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+global $wpdb;
+//update_option('liqpay_public_key', 'sandbox_i20264170366');
+//update_option('liqpay_private_key', 'sandbox_8qAwO0zTV4B5uz0uKoOXlZBVgqNpfysENt4vdxXV');
+$charset_collate = $wpdb->get_charset_collate();
+$table_name = $wpdb->prefix . 'subscriptions';
+
+$sql = "CREATE TABLE $table_name (
+    id mediumint(9) NOT NULL AUTO_INCREMENT,
+    user_id mediumint(9) NOT NULL,
+    subscription_date datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+    status varchar(55) DEFAULT 'active' NOT NULL,
+    PRIMARY KEY (id)
+) $charset_collate;";
+
+dbDelta($sql);
+
+require get_template_directory() . '/functions/liqPay.php'; # liqPay
+
+function liqpay_shortcode($atts) {
+    $publicKey = get_option('liqpay_public_key');
+    $privateKey = get_option('liqpay_private_key');
+    $liqPay = new LiqPay($publicKey, $privateKey);
+
+    $params = [
+        'action'               => 'subscribe',
+        'version'              => '3',
+//        'phone'                => '380950000001',
+        'amount'               => '1',
+        'currency'             => 'UAH',
+        'description' => 'Підписка на один місяць',
+        'order_id'             => 'order_id_1',
+        'subscribe'            => '1',
+        'subscribe_date_start' => date('Y-m-d H:i:s'),
+        'subscribe_periodicity'=> 'month',
+//        'card'                 => '4731195301524634',
+//        'card_exp_month'       => '03',
+//        'card_exp_year'        => '22',
+//        'card_cvv'             => '111'
+    ];
+
+    return $liqPay->cnb_form($params);
+}
+add_shortcode('liqpay', 'liqpay_shortcode');
+
+add_action('init', 'handle_liqpay_response');
+function liqpay_log($message) {
+    error_log("[LiqPay]: " . $message);
+}
+function handle_liqpay_response() {
+    liqpay_log("Функция handle_liqpay_response вызвана");
+//    if(!is_page('rekruter')) {
+//        liqpay_log("rekruter page not found");
+//        return;
+//    }
+    // Проверяем, что это POST-запрос и в нем есть необходимые параметры
+    liqpay_log(json_encode($_POST));
+    liqpay_log($_SERVER['REQUEST_METHOD']);
+    liqpay_log($_POST['data']);
+    liqpay_log($_POST['signature']);
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['data'], $_POST['signature'])) {
+        $publicKey = get_option('liqpay_public_key');
+        $privateKey = get_option('liqpay_private_key');
+        $liqpay = new LiqPay($publicKey, $privateKey);
+        $data = $_POST['data'];
+        $signature = $_POST['signature'];
+        // Проверяем подпись
+        if ($liqpay->cnb_signature(['data' => $data]) === $signature) {
+            $decoded_data = $liqpay->decode_params($data);
+            $user_email = $decoded_data['email']; // Замените на правильный ключ, если в $decoded_data содержится email пользователя
+            function send_success_email($user_email) {
+                wp_mail($user_email, 'Подписка активирована!', 'Спасибо за вашу подписку!');
+            }
+            if ($decoded_data['status'] === 'success') {
+                liqpay_log("Оплата прошла успешно для пользователя " . $user_email);
+
+                if (email_exists($user_email)) {
+                    // Пользователь уже существует, обновляем информацию или продлеваем подписку
+                    $user_id = email_exists($user_email);
+                    global $wpdb;
+                    if ($user_id) {
+                        // Пользователь уже существует
+                        liqpay_log("Пользователь с email {$user_email} уже существует с ID {$user_id}. Обновляем информацию о подписке.");
+                        // Обновляем или добавляем информацию о подписке в таблицу subscriptions
+                        $table_name = $wpdb->prefix . 'subscriptions';
+                        // Проверяем, есть ли уже запись о подписке для этого пользователя
+                        $existing_subscription = $wpdb->get_row($wpdb->prepare(
+                            "SELECT * FROM {$table_name} WHERE user_id = %d LIMIT 1",
+                            $user_id
+                        ));
+                        if ($existing_subscription) {
+                            // Подписка существует, обновляем дату
+                            $updated = $wpdb->update(
+                                $table_name,
+                                array(
+                                    'subscription_date' => current_time('mysql'),
+                                    'status' => 'active'
+                                ),
+                                array('user_id' => $user_id),
+                                array('%s', '%s'),
+                                array('%d')
+                            );
+
+                            if ($updated) {
+                                liqpay_log("Подписка для пользователя {$user_id} была успешно обновлена.");
+                            } else {
+                                liqpay_log("Ошибка при обновлении подписки для пользователя {$user_id}.");
+                            }
+                        } else {
+                            // Подписка не существует, добавляем новую запись
+                            $inserted = $wpdb->insert(
+                                $table_name,
+                                array(
+                                    'user_id' => $user_id,
+                                    'subscription_date' => current_time('mysql'),
+                                    'status' => 'active'
+                                ),
+                                array('%d', '%s', '%s')
+                            );
+
+                            if ($inserted) {
+                                liqpay_log("Подписка для пользователя {$user_id} была успешно добавлена.");
+                            } else {
+                                liqpay_log("Ошибка при добавлении подписки для пользователя {$user_id}.");
+                            }
+                        }
+                    }
+                } else {
+                    // Создаем нового пользователя
+                    $random_password = wp_generate_password($length = 12, $include_standard_special_chars = false);
+                    $user_id = wp_create_user($user_email, $random_password, $user_email);
+
+                    // Установите роль "subscriber" или любую другую
+                    $user = new WP_User($user_id);
+                    $user->set_role('subscriber');
+
+                    // Отправьте письмо пользователю с данными для входа
+                    wp_mail($user_email, 'Добро пожаловать!', 'Ваши данные для входа: ' . $random_password);
+                }
+            } elseif ($decoded_data['status'] === 'failure') {
+                liqpay_log("Ошибка оплаты для пользователя " . $user_email);
+            } elseif ($decoded_data['status'] === 'sandbox') {
+                // Обработка песочницы
+                liqpay_log("Sandbox payment detected for $user_email");
+            } else {
+                liqpay_log("Неизвестный статус оплаты для пользователя " . $user_email);
+            }
+        } else {
+            liqpay_log("Подпись не совпадает, что-то пошло не так");
+        }
+        wp_redirect(home_url('/rekruter'));
+        exit;
+    }
+}
+
 require get_template_directory() . '/functions/post_types.php'; # AJAX search
 require get_template_directory() . '/functions/add_col_to_vac.php'; // Add columns to Vacansies Post Type
 require get_template_directory() . '/functions/ajax-search.php'; # AJAX search
@@ -110,7 +265,7 @@ function rekr3() {
 
 //        wp_enqueue_script('lodash', get_template_directory_uri() . '/assets/js/lodash.js');
         wp_enqueue_script('jq-ui', 'https://code.jquery.com/ui/1.13.2/jquery-ui.js', array('jquery'), '', false);
-        wp_enqueue_script('slick', 'https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.jss', array('jquery'), '', false);
+        wp_enqueue_script('slick', 'https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js', array('jquery'), '', false);
         wp_enqueue_script('js_pdf', 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js', array('jquery'), '', false);
         wp_enqueue_script('js_word','https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.0/mammoth.browser.min.js', array('jquery'), '', false);
         wp_enqueue_script('jspdf','https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.0/jspdf.umd.min.js', array('jquery'), '', false);
@@ -201,6 +356,12 @@ add_filter('login_headerurl', 'ourUrl');
 function ourUrl()
 {
     return esc_url(site_url('/'));
+}
+// Срабатывает при входе пользователя в систему
+add_action('wp_login', 'record_last_login', 10, 2);
+
+function record_last_login($user_login, $user) {
+    update_user_meta($user->ID, 'last_login', current_time('mysql'));
 }
 
 ///**
@@ -532,6 +693,7 @@ function sbfilter_function()
         }
     } else {
         $args = array(
+            'ep_integrate'   => true,
             'post_type' => array('language', 'additional-lang', 'tech-lang', 'nontech'),
             'posts_per_page' => -1, // limit the number of posts if you like to
             'orderby' => 'title',
@@ -552,6 +714,7 @@ add_action('wp_ajax_nopriv_myfilter', 'misha_filter_function');
 
 function misha_filter_function(){
     $args = array(
+        'ep_integrate'   => true,
         'post_type' => array('candidate','rekomend'),
         'meta_key'          => 'zarplata',
         'orderby'           => 'meta_value',
@@ -1825,6 +1988,7 @@ function save_block() {
     $wpdb->insert(
         $wpdb->prefix . 'blocks',
         array(
+            'ep_integrate'   => true,
             'block_id' => $block_id,
             'title' => $title,
             'post_type' => $post_type,
@@ -1864,6 +2028,7 @@ function get_posts_for_block() {
     if ($post_type === 'language') {
         // Здесь используется тип постов 'language'
         $args = array(
+            'ep_integrate'   => true,
             'post_type' => 'language',
             'posts_per_page' => -1,
             'orderby' => 'title',
@@ -1880,6 +2045,7 @@ function get_posts_for_block() {
     } elseif ($post_type === 'noitposts') {
         // Здесь используется тип постов 'noitposts'
         $args = array(
+            'ep_integrate'   => true,
             'post_type' => 'noitposts',
             'posts_per_page' => -1,
             'orderby' => 'title',
@@ -2099,6 +2265,7 @@ function create_custom_post() {
     $block_id = isset($_POST['block_id']) ? intval($_POST['block_id']) : 0;  // Добавьте это
 
     $args = array(
+        'ep_integrate'   => true,
         'post_type'   => $post_type,
         'post_status' => 'trash',
         'title'        => $post_title,
@@ -2130,6 +2297,7 @@ function create_custom_post() {
         }
         // Создаем новый пост
         $new_post = array(
+            'ep_integrate'   => true,
             'post_title'    => $post_title,
             'post_status'   => 'publish',
             'post_type'     => $post_type,
@@ -2145,6 +2313,7 @@ function create_custom_post() {
     if ($post_id !== null) {
         $nonce = wp_create_nonce('my_nonce');
         echo json_encode(array(
+            'ep_integrate'   => true,
             'error' => false,
             'post_id' => $post_id,
             'post_title' => $post_title,
@@ -2275,7 +2444,9 @@ function render_post($post) {
     // For ACF fields
     $imya = get_field('imya', $post_id);
     $familiya = get_field('familiya', $post_id);
-    $pdf_parsed = get_field('pdf_parsed', $post_id);
+    $pdf_parsed_text = get_field('pdf_parsed', $post_id);
+    $pdf_parsed = strip_tags($pdf_parsed_text);
+    $pdf_parsed = preg_replace('/[^а-яА-Яa-zA-Z0-9\s.,]/u', '', $pdf_parsed);
     $code_cv = get_field('code_cv', $post_id);
     $main_comment_sw = get_field('main_comment_sw', $post_id);
     $main_comment = get_field('main_comment', $post_id);
@@ -2287,7 +2458,13 @@ function render_post($post) {
     $valueeng = $fieldeng['value'];
     $engl_r = $fieldeng['choices'][$valueeng];
     $region = get_field('region', $post_id);
-    $zarplata = get_field('zarplata', $post_id);
+    $zarplata = 0;
+    $zarplatach = get_field('zarplata', $post_id);
+    if($zarplatach) {
+        $zarplata = get_field('zarplata', $post_id);
+    } else {
+        $zarplata = 0;
+    }
     $status_r = get_field('status_r', $post_id);
     $exp_r = get_field('exp_r', $post_id);
     $prichina_bl = get_field('prichina_bl', $post_id);
@@ -2416,14 +2593,15 @@ function render_post($post) {
 // Удалить символы, кроме букв и цифр
             $test = preg_replace("/[^a-zA-Z0-9]/", "", $test);
             if($test == 'telegram') {
-                $trtr[] = '<a href="https://t.me/'.$contactData.'" class="spec1 cp_btn bk_'.$test.'" id="'. uniqid() .'" data-chenel="'.$kanal_zvyazku.'" target="_blank"><span>'.$contactData.'</span></a>';
+//                $trtr[] = '<a href="https://t.me/'.$contactData.'" class="telele spec1 cp_btn bk_'.$test.'" id="'. uniqid() .'" data-chenel="'.$kanal_zvyazku.'" target="_blank"><span>'.$contactData.'</span></a>';
+                $trtr[] = '<a href="'.$contactData.'" class="telele spec1 cp_btn bk_'.$test.'" id="'. uniqid() .'" data-chenel="'.$kanal_zvyazku.'" target="_blank"><span>'.$contactData.'</span></a>';
 
             }
-            if($test == 'linkedin') {
-                $trtr[] = '<a href="'.$contactData.'" class="spec1 cp_btn bk_'.$test.'" id="'. uniqid() .'" data-chenel="'.$kanal_zvyazku.'" target="_blank"><span>'.$contactData.'</span></a>';
+            else if($test == 'linkedin') {
+                $trtr[] = '<a href="'.$contactData.'" class="lkdi spec1 cp_btn bk_'.$test.'" id="'. uniqid() .'" data-chenel="'.$kanal_zvyazku.'" target="_blank"><span>'.$contactData.'</span></a>';
 
             } else {
-                $trtr[] = '<a href="javascript:void(0);" class="spec1 cp_btn bk_'.$test.'" id="'. uniqid() .'" data-chenel="'.$kanal_zvyazku.'"><span>'.$contactData.'</span></a>';
+                $trtr[] = '<a href="javascript:void(0);" class="specspok spec1 cp_btn bk_'.$test.'" id="'. uniqid() .'" data-chenel="'.$kanal_zvyazku.'"><span>'.$contactData.'</span></a>';
             }
 
         endwhile;
@@ -2446,15 +2624,15 @@ function render_post($post) {
     $zvidki_kandidat = get_field('zvidki_kandidat', $post_id);
     $zvidku = '';
     if ($zvidki_kandidat === "Linkedin") {
-        $zvidku = '<span style="color: #0a4b78">Linkedin</span>';
+        $zvidku = '<span class="fromWhere" style="background-color: #0a4b78">Linkedin</span>';
     } else if ($zvidki_kandidat === "work.ua") {
-        $zvidku = '<span style="color: #0f2b78">work.ua</span>';
+        $zvidku = '<span class="fromWhere" style="background-color: #0f2b78">work.ua</span>';
     } else if ($zvidki_kandidat === "rabota.ua") {
-        $zvidku = '<span style="color: #ff4d56">rabota.ua</span>';
+        $zvidku = '<span class="fromWhere" style="background-color: #ff4d56">rabota.ua</span>';
     } else if ($zvidki_kandidat === "robota.ua") {
-        $zvidku = '<span style="color: #ff4d56">robota.ua</span>';
+        $zvidku = '<span class="fromWhere" style="background-color: #ff4d56">robota.ua</span>';
     } else if ($zvidki_kandidat === "djinni.co") {
-        $zvidku = '<span style="color: #7535ff">djinni.co</span>';
+        $zvidku = '<span class="fromWhere" style="background-color: #7535ff">djinni.co</span>';
     } else {
         $zvidku = "unknown";
     }
@@ -2502,13 +2680,14 @@ function render_post($post) {
         </div>
         <div class='bk_end'>
             <div class='bk_cv'>";
+    $html .= "{$zvidkuAll}";
     $resume_id = get_field('resume_r', $post_id);
     if ($resume_id) {
         $html .= "<a href='javascript:void(0);' class='modalCv' id='modal-launcher'>";
         if ($zvidki_kandidat) {
-            $html .= "<span class='fromWhere'>{$zvidki_kandidat}</span>";
+//            $html .= "<span class='fromWhere'>{$zvidki_kandidat}</span>";
         }
-        $html .= "<img src='". get_bloginfo('template_url') . "/assets/img/CV.png' alt='CV'/></a>
+        $html .= "<img src='". get_bloginfo('template_url') . "/assets/img/cv.png' alt='CV'/></a>
                 <div id='modal-background'></div>
                 <div id='modal-content'>
                     <button id='modal-close'>✖</button>";
@@ -2607,6 +2786,7 @@ function filter_posts($post)
 {
     // Создаем новый WP_Query для подсчета постов с определенным значением в поле tehnichninetehnichni
     $techQuery = new WP_Query(array(
+        'ep_integrate'   => true,
         'post_type' => array('candidate', 'rekomend'),
         'posts_per_page' => -1,
         'fields' => 'ids',
@@ -2618,11 +2798,12 @@ function filter_posts($post)
     $page = isset($_POST['page']) ? intval($_POST['page']) : 1;
 
     $args = array(
+        'ep_integrate'   => true,
         'post_type' => array('candidate', 'rekomend'),
 //        'meta_key' => 'dataStart2',
         'orderby' => 'date',
         'order' => 'ASC',
-        'posts_per_page' => 3,
+        'posts_per_page' => 20,
         'paged' => $page,
     );
     $args['meta_query'] = array('relation' => 'AND');
@@ -2930,6 +3111,7 @@ function render_vacancy($post) {
 
     $vacId = get_the_ID();
     $starCount = new WP_Query(array(
+        'ep_integrate'   => true,
         'post_type' => 'vstar',
         'meta_query' => array(
             array(
@@ -2943,6 +3125,7 @@ function render_vacancy($post) {
     if (is_user_logged_in()) {
         $existStar = new WP_Query(array(
             'author' => get_current_user_id(),
+            'ep_integrate'   => true,
             'post_type' => 'vstar',
             'meta_query' => array(
                 array(
@@ -3145,10 +3328,12 @@ function filter_vac($post)
     echo json_encode($response);
     wp_die();
 }
+
 /////////////////// Актуалізуємо стаж кандидата (CRON)  /////////////////////////////////////////////////
 add_action('my_daily_event', 'update_all_experiences');
 function update_all_experiences() {
     $args = array(
+        'ep_integrate'   => true,
         'post_type' => 'candidate',
         'post_status' => 'publish',
         'posts_per_page' => -1
@@ -3205,15 +3390,20 @@ add_action('rest_api_init', function () {
 });
 
 
-wp_enqueue_script( 'my-ajax2-script', get_template_directory_uri() . '/js/my-ajax2-script.js', array('jquery') );
-wp_localize_script( 'my-ajax2-script', 'MyAjax2', array(
-    'ajaxurl' => admin_url( 'admin-ajax.php' ),
-    'security' => wp_create_nonce( 'my-ajax-nonce' )
-));
+//wp_enqueue_script( 'my-ajax2-script', get_template_directory_uri() . '/js/my-ajax2-script.js', array('jquery') );
+//wp_localize_script( 'my-ajax2-script', 'MyAjax2', array(
+//    'ajaxurl' => admin_url( 'admin-ajax.php' ),
+//    'security' => wp_create_nonce( 'my-ajax-nonce' )
+//));
+
+//wp_enqueue_script( 'my-ajax2-script', get_template_directory_uri() . '/js/my-ajax2-script.js', array('jquery') );
+//wp_localize_script( 'my-ajax2-script', 'MyAjax2', array(
+//    'ajaxurl' => admin_url( 'admin-ajax.php' ),
+//    'security' => wp_create_nonce( 'my-ajax2-nonce' )
+//));
 
 add_action('wp_ajax_nopriv_submit_step', 'submit_step');
 add_action('wp_ajax_submit_step', 'submit_step');
-
 function submit_step() {
     // Проверяем nonce
     check_ajax_referer('my-ajax-nonce', 'security');
@@ -3237,7 +3427,12 @@ function submit_step() {
             'message' => $user_id->get_error_message(),
         ));
     } else {
-        // Пользователь успешно создан, вернуть успех
+        // Пользователь успешно создан, автоматически войдите в систему
+        wp_set_current_user($user_id, $_POST['email']);
+        wp_set_auth_cookie($user_id);
+        do_action('wp_login', $_POST['email']);
+
+        // Верните успех
         echo json_encode(array(
             'success' => true,
         ));
@@ -3246,3 +3441,176 @@ function submit_step() {
     wp_die();
 }
 
+//function submit_step() {
+//    // Проверяем nonce
+//    check_ajax_referer('my-ajax-nonce', 'security');
+//
+//    // Сохраняем данные из формы
+//    $userdata = array(
+//        'user_login'  =>  $_POST['email'], // Используйте email в качестве логина
+//        'user_email'  =>  $_POST['email'],
+//        'user_pass'   =>  $_POST['password'],  // Пароль
+//        'first_name'  =>  $_POST['name'],
+//        'last_name'   =>  $_POST['lastName'],
+//        'display_name'  =>  $_POST['name'] .' '. $_POST['lastName'],
+//    );
+//    $user_id = wp_insert_user( $userdata ) ;
+//
+//    // Проверьте, был ли пользователь успешно создан.
+//    if ( is_wp_error( $user_id ) ) {
+//        // Вернуть ошибку клиенту
+//        echo json_encode(array(
+//            'success' => false,
+//            'message' => $user_id->get_error_message(),
+//        ));
+//    } else {
+//        // Пользователь успешно создан, вернуть успех
+//        echo json_encode(array(
+//            'success' => true,
+//        ));
+//    }
+//
+//    wp_die();
+//}
+
+add_action('admin_menu', 'my_custom_settings_page');
+
+function my_custom_settings_page() {
+    add_menu_page(
+        'Invite message',
+        'Invite',
+        'manage_options',
+        'welcome-settings',
+        'my_custom_settings_content',
+        'dashicons-welcome-write-blog',
+        80
+    );
+}
+
+function my_custom_settings_content() {
+    ?>
+    <div class="wrap">
+        <h1><?php echo get_admin_page_title(); ?></h1>
+        <form action="options.php" method="post">
+            <?php
+            settings_fields('welcome_settings');
+            do_settings_sections('welcome-settings');
+            submit_button();
+            ?>
+        </form>
+    </div>
+    <?php
+}
+
+add_action('admin_init', 'my_custom_settings_init');
+
+function my_custom_settings_init() {
+    register_setting('welcome_settings', 'welcome_message');
+
+    add_settings_section(
+        'welcome_settings_section',
+        'Настройки запрошення',
+        '',
+        'welcome-settings'
+    );
+
+    add_settings_field(
+        'welcome_message_field',
+        'Запрошення',
+        'my_custom_settings_field_callback',
+        'welcome-settings',
+        'welcome_settings_section'
+    );
+}
+function my_custom_settings_field_callback() {
+    $welcome_message = get_option('welcome_message', ''); // Получите сохраненное сообщение или используйте пустую строку по умолчанию
+    echo "<textarea name='welcome_message' rows='5' cols='50'>{$welcome_message}</textarea>";
+}
+
+
+add_action('wp_ajax_update_user_capabilities', 'update_user_capabilities_callback');
+
+function update_user_capabilities_callback() {  // Обновление возможностей пользователя
+    $user_id = intval($_POST['user_id']);
+
+    $capabilities_map = [
+        'delete_candidates' => 'delete_candidates',
+        'publish_candidates' => 'publish_candidates',
+        'delete_vacancys' => 'delete_vacancys',
+        'add_vacancys' => 'add_vacancys',
+        'delete_clients' => 'delete_clients',
+        'add_clients' => 'add_clients',
+        'delete_users' => 'delete_users',
+        'create_users' => 'create_users',
+        'edit_users' => 'edit_users',
+        'assign_client_responsibility' => 'assign_client_responsibility'
+    ];
+
+    if(!current_user_can('manage_options')) {
+        wp_send_json_error('Недостаточно прав');
+        exit;
+    }
+
+    $user = new WP_User($user_id);
+
+    foreach($capabilities_map as $post_key => $capability) {
+        if(isset($_POST[$post_key]) && $_POST[$post_key] == "1") {
+            $user->add_cap($capability);
+        } else {
+            $user->remove_cap($capability);
+        }
+    }
+
+    wp_send_json_success('Можливості оновлені');
+}
+function custom_rewrite_rule($rules) {
+    $new_rules = array(
+        'user/([^/]+)/?$' => 'index.php?pagename=user-profile&username=$matches[1]'
+    );
+    return $new_rules + $rules;
+}
+add_filter('rewrite_rules_array', 'custom_rewrite_rule');
+//function custom_query_vars($vars) {
+//    $vars[] = 'username';
+//    return $vars;
+//}
+//add_filter('query_vars', 'custom_query_vars');
+function custom_query_vars_filter($vars) {
+    $vars[] .= 'user_id';
+    return $vars;
+}
+add_filter('query_vars', 'custom_query_vars_filter');
+
+function custom_rew_rule() {
+    add_rewrite_rule('^user-profile/([0-9]+)/?$', 'index.php?pagename=user-profile&user_id=$matches[1]', 'top');
+    add_rewrite_tag('%user_id%', '([^&]+)');
+}
+add_action('init', 'custom_rew_rule', 10, 0);
+
+add_action('wp_ajax_transfer_admin_rights', 'transfer_admin_rights_callback');
+function transfer_admin_rights_callback() {
+    if(current_user_can('administrator') && isset($_POST['user_id'])) {
+        $new_admin_id = intval($_POST['user_id']);
+
+        if ($new_admin_user = get_userdata($new_admin_id)) {
+            $new_admin_user->set_role('administrator');
+            $user_info = get_userdata($new_admin_id);
+            $to = $user_info->user_email;
+            $subject = 'Вас призначено адміністратором!';
+            $message = 'Вітаємо! Вас призначено адміністратором команди ' . get_bloginfo('name') . '. Ви можете управляти сайтом, якщо перейдете за посиланням ' . get_bloginfo('url') . '/wp-admin';
+            wp_mail($to, $subject, $message);
+//            $current_user = wp_get_current_user();
+//            $current_user->set_role('subscriber'); // или другая роль
+
+            echo json_encode(array('success' => true, 'message' => 'Права успешно переданы пользователю ' . $new_admin_user->display_name));
+        } else {
+            echo json_encode(array('success' => false, 'message' => 'Выбранный пользователь не существует.'));
+        }
+    }
+    wp_die();
+}
+
+function add_x_frame_options() {
+    header('X-Frame-Options: DENY');
+}
+add_action('init', 'add_x_frame_options');

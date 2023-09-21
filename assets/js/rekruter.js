@@ -1,4 +1,22 @@
 jQuery(document).ready(function ($) {
+    $('#button1, #button2').on('input', function () {
+        let $this = $(this);
+        if ($this.text().trim() === '') {
+            $this.text('+');
+        } else if ($this.text().trim() === '+') {
+            $this.text('');
+        }
+    });
+    $('.invite-form').on('click', function () {
+        $('.invBg').css('display', 'block');
+        $('.invFormWraper').css('display', 'block');
+        $('#invForm').css('display', 'flex');
+    });
+    $('.css-w0pj6f').on('click', function () {
+        $('.invBg').css('display', 'none');
+        $('.invFormWraper').css('display', 'none');
+        $('#invForm').css('display', 'none');
+    });
     $(document).on('click', '.openEditFilter', function () {
         $('body').toggleClass('activeEditor');
         $('#button1, #button2').toggleClass('editable-button');
@@ -6,24 +24,24 @@ jQuery(document).ready(function ($) {
         $('#button1, #button2').attr('contenteditable', !isEditable);
         let isTitleEditable = $('.accordion-title.editable').attr('contenteditable') === 'true';
         $('.accordion-title.editable').attr('contenteditable', !isTitleEditable);
-        if($('#button2').text() !== '+') {
-            $('#button2').css('display','inline-block');
+        if ($('#button2').text() !== '+') {
+            $('#button2').css('display', 'inline-block');
         }
     });
-    $('.left_vac.pipe').on('click','#button1',function () {
-        $('.spec_wrapper-language').css('display','block');
-        $('.spec_wrapper-noitposts').css('display','none');
-        $('.specnoit').css('display','none');
+    $('.left_vac.pipe').on('click', '#button1', function () {
+        $('.spec_wrapper-language').css('display', 'block');
+        $('.spec_wrapper-noitposts').css('display', 'none');
+        $('.specnoit').css('display', 'none');
         localStorage.setItem('clickedButton', this.id);
         $('#button2').removeClass('active');
         $(this).addClass('active');
         $('body').removeClass('activebtn2');
         $('body').addClass('activebtn1');
     });
-    $('.left_vac.pipe').on('click','#button2',function () {
-        $('.spec_wrapper-language').css('display','none');
-        $('.spec_wrapper-noitposts').css('display','block');
-        $('.specnoit').css('display','block');
+    $('.left_vac.pipe').on('click', '#button2', function () {
+        $('.spec_wrapper-language').css('display', 'none');
+        $('.spec_wrapper-noitposts').css('display', 'block');
+        $('.specnoit').css('display', 'block');
         localStorage.setItem('clickedButton', this.id);
         $('#button1').removeClass('active');
         $(this).addClass('active');
@@ -31,11 +49,11 @@ jQuery(document).ready(function ($) {
         $('body').addClass('activebtn2');
     });
     // Edit main top buttons
-    $(document).on('click', '.editable-button', function() {
+    $(document).on('click', '.editable-button', function () {
         $('#button1, #button2').attr('contenteditable', 'true');
         $(this).attr('contenteditable', 'true');
     });
-    $(document).on('blur', '.editable-button', function() {
+    $(document).on('blur', '.editable-button', function () {
         var button_id = $(this).attr('id');
         var new_text = $(this).text();
 
@@ -47,14 +65,14 @@ jQuery(document).ready(function ($) {
                 button_id: button_id,
                 new_text: new_text
             },
-            success: function(response) {
+            success: function (response) {
                 $('#button1, #button2').attr('contenteditable', 'false');
             }
         });
     });
 
     ///////////////////////////////           Delete blocks         /////////////////////////////////////////////////
-    $(document).on('click', '.delete-block-button', function() {
+    $(document).on('click', '.delete-block-button', function () {
         var block_id = $(this).parent().attr('id').replace('spec_wrapper', '');
         var deleteButton = $(this);
 
@@ -64,7 +82,7 @@ jQuery(document).ready(function ($) {
             width: 400,
             modal: true,
             buttons: {
-                'Да': function() {
+                'Да': function () {
                     $(this).dialog('close');
                     $.ajax({
                         url: '/wp-admin/admin-ajax.php',
@@ -73,7 +91,7 @@ jQuery(document).ready(function ($) {
                             action: 'delete_block',
                             block_id: block_id
                         },
-                        success: function(response) {
+                        success: function (response) {
                             if (response.success) {
                                 // Создаем кнопку восстановления
                                 var restoreButton = $('<div>', {
@@ -91,7 +109,7 @@ jQuery(document).ready(function ($) {
                         }
                     });
                 },
-                'Нет': function() {
+                'Нет': function () {
                     $(this).dialog('close');
                 }
             }
@@ -99,7 +117,7 @@ jQuery(document).ready(function ($) {
     });
 
 ///////////////////////////          Restore block          ////////////////////////////////////////
-    $(document).on('click', '.restore-block-button', function() {
+    $(document).on('click', '.restore-block-button', function () {
         var block_id = $(this).data('blockid');
         var restoreButton = $(this);
 
@@ -110,7 +128,7 @@ jQuery(document).ready(function ($) {
                 action: 'restore_block',
                 block_id: block_id
             },
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     // Убираем блок из списка удаленных блоков
                     var block = restoreButton.parent();
@@ -128,30 +146,30 @@ jQuery(document).ready(function ($) {
         });
     });
     ////////////////////////// Отправляем AJAX запрос для получения данных о кнопках         /////////////////////
-        $.ajax({
-            url: '/wp-admin/admin-ajax.php',
-            method: 'POST',
-            data: {
-                action: 'get_buttons_from_db'
-            },
-            success: function(data) {
-                if (data.success) {
-                    // Если данные получены, обновляем текст кнопок
-                    for (var i = 0; i < data.data.length; i++) {
-                        $('#' + data.data[i].button_id).text(data.data[i].text);
-                    }
-                    if($('#button2').text() !== '+') {
-                        $('#button2').css('display','inline-block');
-                    }
-                } else {
-                    // Если данных нет, выводим сообщение об ошибке
-                    console.log(data.data);
+    $.ajax({
+        url: '/wp-admin/admin-ajax.php',
+        method: 'POST',
+        data: {
+            action: 'get_buttons_from_db'
+        },
+        success: function (data) {
+            if (data.success) {
+                // Если данные получены, обновляем текст кнопок
+                for (var i = 0; i < data.data.length; i++) {
+                    $('#' + data.data[i].button_id).text(data.data[i].text);
                 }
-            },
-            error: function() {
-                console.log('Виникла помилка при отриманні данних кнопок.');
+                if ($('#button2').text() !== '+') {
+                    $('#button2').css('display', 'inline-block');
+                }
+            } else {
+                // Если данных нет, выводим сообщение об ошибке
+                console.log(data.data);
             }
-        });
+        },
+        error: function () {
+            console.log('Виникла помилка при отриманні данних кнопок.');
+        }
+    });
 // Edit filter title
 //     $('#pipe_filtrs').on('blur', '.editable', function() {
 //         var post_id = $(this).data('postid');
@@ -172,16 +190,16 @@ jQuery(document).ready(function ($) {
 //             }
 //         });
 //     });
-    $(document).on('click', '.accordion-title', function (){
+    $(document).on('click', '.accordion-title', function () {
         $(this).parent().toggleClass('show');
         $(this).parent().find('.vac_speciality').toggle('fast');
         $(this).parent().find('.lang_left').toggle('fast');
     });
-    $(document).on('click', '.accordion-title-blocks', function (){
+    $(document).on('click', '.accordion-title-blocks', function () {
         $(this).parent().toggleClass('show');
         $(this).parent().find('#deleted-blocks-section').toggle('fast');
     });
-    $('#pipe_filtrs').on('blur', '.editable', function() {
+    $('#pipe_filtrs').on('blur', '.editable', function () {
         // Извлекаем block_id из id элемента, удалив "accordion-title-" из начала
         var block_id = parseInt($(this).attr('id').replace('accordion-title-', ''));
         var new_title = $(this).text();
@@ -194,16 +212,21 @@ jQuery(document).ready(function ($) {
                 block_id: block_id,
                 new_title: new_title
             },
-            success: function( response ) {
-                console.log( response );
+            success: function (response) {
+                console.log(response);
             }
         });
     });
     ///////////////// add new block filter
     var blockCount = 1;
+
     function addBlock(blockCount, title, post_type, deleted) {
         // Создаем новый блок
-        var newBlock = $('<div>', {id: 'spec_wrapper' + blockCount, class: 'spec_wrapper-' + post_type + ' fiw', 'data-posttype': post_type});
+        var newBlock = $('<div>', {
+            id: 'spec_wrapper' + blockCount,
+            class: 'spec_wrapper-' + post_type + ' fiw',
+            'data-posttype': post_type
+        });
         newBlock.append($('<h3>', {
             id: 'accordion-title-' + blockCount,
             class: 'accordion-title editable',
@@ -254,9 +277,9 @@ jQuery(document).ready(function ($) {
         data: {
             action: 'get_blocks'
         },
-        success: function(data) {
+        success: function (data) {
             if (data.success) {
-                $.each(data.data, function(index, block) {
+                $.each(data.data, function (index, block) {
                     addBlock(block.block_id, block.title, block.post_type, block.deleted);
                     if (block.block_id > blockCount) {
                         blockCount = block.block_id;
@@ -267,13 +290,13 @@ jQuery(document).ready(function ($) {
                 console.log(data.data);
             }
         },
-        error: function() {
+        error: function () {
             console.log('Произошла ошибка при получении блоков.');
         }
     });
 
     // При нажатии на кнопку добавляем новый блок
-    $('#add-block-button-language, #add-block-button-noitposts').click(function(e) {
+    $('#add-block-button-language, #add-block-button-noitposts').click(function (e) {
         e.preventDefault();
 
         var title = prompt('Введіть назву блоку:');
@@ -289,7 +312,7 @@ jQuery(document).ready(function ($) {
                     post_type: post_type,
                     title: title
                 },
-                success: function(data) {
+                success: function (data) {
                     if (data.success) {
                         addBlock(blockCount, title, post_type);
                         blockCount++;
@@ -297,14 +320,14 @@ jQuery(document).ready(function ($) {
                         console.log(data.data);
                     }
                 },
-                error: function() {
+                error: function () {
                     console.log('Произошла ошибка при сохранении блока.');
                 }
             });
         }
     });
 
-    $(document).on('submit', '.custom-post-form', function(e) {  // Замените 'post_type' на ваш тип поста
+    $(document).on('submit', '.custom-post-form', function (e) {  // Замените 'post_type' на ваш тип поста
         e.preventDefault();  // Это предотвратит обычную отправку формы
 
         var form = $(this);
@@ -313,7 +336,7 @@ jQuery(document).ready(function ($) {
             type: 'POST',
             data: form.serialize() + '&action=create_custom_post',
 
-            success: function(data) {
+            success: function (data) {
                 if (data.error) {
                     $('#error-notification').text(data.message).fadeIn().delay(5000).fadeOut();
                 } else {
@@ -327,7 +350,7 @@ jQuery(document).ready(function ($) {
                         $(form).before(newPostHtml);
 
                         // Add click event handler to the new delete button
-                        $('.delete-post-button').last().on('click', function() {
+                        $('.delete-post-button').last().on('click', function () {
                             var deleteButton = $(this);
                             var postId = $(this).data('id');
                             var nonce = $(this).data('nonce');
@@ -346,11 +369,11 @@ jQuery(document).ready(function ($) {
                                 width: 400,
                                 modal: true,
                                 buttons: {
-                                    'Да': function() {
+                                    'Да': function () {
                                         $(this).dialog('close');
 
-                                        $.post(ajaxurl, data, function(response) {
-                                            if(response === 'success') {
+                                        $.post(ajaxurl, data, function (response) {
+                                            if (response === 'success') {
                                                 alert('Позицію видалено');
                                                 deleteButton.parent().remove();
                                             } else {
@@ -358,7 +381,7 @@ jQuery(document).ready(function ($) {
                                             }
                                         });
                                     },
-                                    'Нет': function() {
+                                    'Нет': function () {
                                         $(this).dialog('close');
                                     }
                                 }
@@ -369,13 +392,13 @@ jQuery(document).ready(function ($) {
                     }, 500);
                 }
             },
-            error: function() {
+            error: function () {
                 console.error('There was an error submitting the form.');
             }
         });
     });
 ///////////// Видалення поста фільтра
-    $(document).on('click', '.delete-post-button', function() {
+    $(document).on('click', '.delete-post-button', function () {
         var deleteButton = $(this);
         var postId = $(this).data('id');
         var nonce = $(this).data('nonce');
@@ -394,11 +417,11 @@ jQuery(document).ready(function ($) {
             width: 400,
             modal: true,
             buttons: {
-                'Да': function() {
+                'Да': function () {
                     $(this).dialog('close');
 
-                    $.post(ajaxurl, data, function(response) {
-                        if(response === 'success') {
+                    $.post(ajaxurl, data, function (response) {
+                        if (response === 'success') {
                             alert('Позицію видалено');
                             deleteButton.parent().remove();  // Удалить родительский элемент кнопки
                             // location.reload();  // Перезагрузить страницу
@@ -408,7 +431,7 @@ jQuery(document).ready(function ($) {
                     });
 
                 },
-                'Нет': function() {
+                'Нет': function () {
                     $(this).dialog('close');
                 }
             }
@@ -442,34 +465,34 @@ jQuery(document).ready(function ($) {
     // });
 
 
-
     // Проверяем все чекбоксы при загрузке страницы
     checkCheckboxes();
 
     // Проверяем все чекбоксы при изменении любого из них
     $('#vac_mova .chbwr .spec1-checkbox').change(checkCheckboxes);
 
-function checkCheckboxes() {
-    if ($('#vac_mova .chbwr .spec1-checkbox').is(':checked')) {
-        // Если хотя бы один чекбокс отмечен, добавляем класс
-        $('.mova_wrapper').addClass('mova_ch');
-    } else {
-        // Если ни один чекбокс не отмечен, удаляем класс
-        $('.mova_wrapper').removeClass('mova_ch');
+    function checkCheckboxes() {
+        if ($('#vac_mova .chbwr .spec1-checkbox').is(':checked')) {
+            // Если хотя бы один чекбокс отмечен, добавляем класс
+            $('.mova_wrapper').addClass('mova_ch');
+        } else {
+            // Если ни один чекбокс не отмечен, удаляем класс
+            $('.mova_wrapper').removeClass('mova_ch');
+        }
     }
-}
 
     function showLoader() {
         $('#loader').show();
-        $('.allmr.pipeCont.list').css('visibility','hidden');
+        $('.allmr.pipeCont.list').css('visibility', 'hidden');
     }
 
     function hideLoader() {
         setTimeout(function () {
             $('#loader').hide();
-            $('.allmr.pipeCont.list').css('visibility','visible');
-        },1000 );
+            $('.allmr.pipeCont.list').css('visibility', 'visible');
+        }, 1000);
     }
+
     function filtersApplied() {
         let filters = JSON.parse(localStorage.getItem('filters'));
 
@@ -481,9 +504,10 @@ function checkCheckboxes() {
         }
         return false;
     }
+
 // Определение переменных во внешней области видимости
 
-    window.onpopstate = function(event) {
+    window.onpopstate = function (event) {
         handlePopState(event.state);
     };
 
@@ -501,9 +525,9 @@ function checkCheckboxes() {
         }
     }
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         $('#user_select').select2({
-            closeOnSelect : false,
+            closeOnSelect: false,
         });
         $('#user_select').on('select2:select', function (e) {
             var selectedOptions = $(this).val();  // Получаем массив выбранных значений
@@ -549,24 +573,24 @@ function checkCheckboxes() {
     let sort = '';
     let user_ids = [];
 
-    $('#sortAsc').click(function() {
+    $('#sortAsc').click(function () {
         sort = 'ASC';
         isFiltering = true;
         currentPage = 1; // Сбрасываем страницу на 1
         filterCandidates();
     });
 
-    $('#sortDesc').click(function() {
+    $('#sortDesc').click(function () {
         sort = 'DESC';
         isFiltering = true;
         currentPage = 1; // Сбрасываем страницу на 1
         filterCandidates();
     });
     $("#zarpl_to_actual").focus(function () {
-        $(this).css("display","none");
-        $('#zarpl_to').css("display","inline");
+        $(this).css("display", "none");
+        $('#zarpl_to').css("display", "inline");
     });
-    $(document).ready(function() {
+    $(document).ready(function () {
         setTimeout(function () {
             let savedFilters = localStorage.getItem('filters');
             let parsedFilters = JSON.parse(savedFilters);
@@ -626,10 +650,10 @@ function checkCheckboxes() {
                         $(this).prop('checked', true);
                     }
                 });
-                if(hasCv === true) {
+                if (hasCv === true) {
                     $('#cv_ch').prop('checked', true);
                 }
-                if(uid === true) {
+                if (uid === true) {
                     $('#cv_ch').prop('checked', true);
                 }
                 $('.spec1-checkbox').each(function () {
@@ -637,36 +661,36 @@ function checkCheckboxes() {
                         $(this).prop('checked', true);
                     }
                 });
-                englishLevels.forEach(function(level) {
+                englishLevels.forEach(function (level) {
                     $(`input[data-number='${level}']`).prop('checked', true);
                 });
-                if(workFormats) {
+                if (workFormats) {
                     workFormats.forEach(function (format) {
                         $(`input[data-level='${format}']`).prop('checked', true);
                     });
                 }
-                if(tags) {
+                if (tags) {
                     tags.forEach(function (ta) {
                         $(`input[data-level='${ta}']`).prop('checked', true);
                     });
                 }
-                datacontact.forEach(function(comm) {
+                datacontact.forEach(function (comm) {
                     $(`input[data-level='${comm}']`).prop('checked', true);
                 });
                 isFiltering = true;
                 currentPage = 1; // Сбрасываем страницу на 1
                 filterCandidates();
             }
-            if($('#button2').text() !== '+') {
-                $('#button2').css('display','inline-block');
+            if ($('#button2').text() !== '+') {
+                $('#button2').css('display', 'inline-block');
             }
         }, 0);
     });
-    $(document).ajaxComplete(function() {
-    var clickedButtonId = localStorage.getItem('clickedButton');
-    if (clickedButtonId) {
-        $('#' + clickedButtonId).addClass('active').trigger('click');
-    }
+    $(document).ajaxComplete(function () {
+        var clickedButtonId = localStorage.getItem('clickedButton');
+        if (clickedButtonId) {
+            $('#' + clickedButtonId).addClass('active').trigger('click');
+        }
     });
     let currentPage = 1;
     let tech_count = '';
@@ -674,7 +698,7 @@ function checkCheckboxes() {
     let isFiltering = false;
     let maxPages = 1;
     let ajaxInProgress = false;
-    $(document).on('click', '.prev.page-numbers', function() {
+    $(document).on('click', '.prev.page-numbers', function () {
         console.log('prev');
         if (currentPage > 1) {
             currentPage--;
@@ -682,7 +706,7 @@ function checkCheckboxes() {
         }
     });
 
-    $(document).on('click', '.next.page-numbers', function() {
+    $(document).on('click', '.next.page-numbers', function () {
         console.log('next');
         if (currentPage < maxPages) {
             currentPage++;
@@ -690,11 +714,12 @@ function checkCheckboxes() {
         }
     });
 
-    $(document).on('click', '.pagination a', function(event) {
+    $(document).on('click', '.pagination a', function (event) {
         event.preventDefault();  // Отмените стандартное действие по клику (переход по ссылке)
         currentPage = $(this).text();  // Получите номер страницы из текста ссылки
         filterCandidates();  // Вызовите вашу функцию с новым номером страницы
     });
+
     function filterCandidates(page) {
         if (ajaxInProgress) return;
         showLoader();
@@ -703,11 +728,11 @@ function checkCheckboxes() {
         let hasCv = $('#cv_ch').is(':checked');  // Чекбокс отмечен или нет
         let uid = $('#my-candidates-checkbox').is(':checked');  // Чекбокс отмечен или нет
         let user_ids = $('#user_select').val();
-        $(".engl .custom-control-input:checked").each(function() {
+        $(".engl .custom-control-input:checked").each(function () {
             englishLevels.push($(this).data('number'));
         });
         let tags = [];
-        $('.vac_tags').each(function() {
+        $('.vac_tags').each(function () {
             if ($(this).is(':checked')) {
                 tags.push($(this).val());
             }
@@ -748,14 +773,14 @@ function checkCheckboxes() {
         let dateto = $('#dateTo').val();
         let zarpl = $('#zarpl').val();
         let zarpl_to = $('#zarpl_to').val();
-        if(zarpl=='') {
+        if (zarpl == '') {
             zarpl = 0;
         }
-        if(zarpl_to=='') {
+        if (zarpl_to == '') {
             zarpl_to = 14000000;
         }
         let oput = $('#opyt_vacans_input').val();
-        if($('#opyt_vacans_input').val() == '7.5') {
+        if ($('#opyt_vacans_input').val() == '7.5') {
             oput = 0;
         }
         spec1 = [];
@@ -777,16 +802,18 @@ function checkCheckboxes() {
                 let matchCount = 0;
                 let mCount = 0;
                 let regExNames = [];
-                $('[id^="vac_speciality"]').each(function(){
+                $('[id^="vac_speciality"]').each(function () {
                     let value = $(this).val().trim().replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, "\\$&");
                     regExNames.push(value);
                 });
-                let mova = $('#vac_mova').val().map(function(item) {
+                let mova = $('#vac_mova').val().map(function (item) {
                     return item.trim().replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, "\\$&");
                 });
                 let oput = $('#opyt_vacans_input').val();
                 let oputattr = $(this).data("oput");
-                if (oputattr==''){oputattr=0;}
+                if (oputattr == '') {
+                    oputattr = 0;
+                }
                 for (let value of spec1) {
                     let regEx = new RegExp(value, "ig");
                     if ($(this).attr("data-spec1").match(regEx)) {
@@ -822,8 +849,11 @@ function checkCheckboxes() {
                 return rtnData;
             });
         }, 0);
+
         function filterDelay2() {
-        }setTimeout(filterDelay2, 100);
+        }
+
+        setTimeout(filterDelay2, 100);
         let filters = {
             spec1: spec1,
             mova: mova,
@@ -848,24 +878,42 @@ function checkCheckboxes() {
         let blacklistChecked = JSON.parse(localStorage.getItem('blacklistChecked')) || false;
         localStorage.setItem('filters', JSON.stringify(filters));
         ajaxInProgress = true;
-        $('.left_vac.pipe').css('pointer-events','none');
-        $('#reset-filters').css('pointer-events','none');
+        $('.left_vac.pipe').css('pointer-events', 'none');
+        $('#reset-filters').css('pointer-events', 'none');
         $.ajax({
             url: '/wp-admin/admin-ajax.php',
             data: {
                 action: 'filter_posts',
                 page: currentPage,
-                filters: filters ? filters : {"spec1":[],"mova":[],"regExName":"","regCountry":"","oput":"0","zarpl":"0","zarpl_to":14000000,"workFormats":[],"tags":[],"englishLevels":[],"datacontact":[],"datefrom":"","dateto":"","hasCv":false,"uid":"","sort":"", "user_ids":[]},
+                filters: filters ? filters : {
+                    "spec1": [],
+                    "mova": [],
+                    "regExName": "",
+                    "regCountry": "",
+                    "oput": "0",
+                    "zarpl": "0",
+                    "zarpl_to": 14000000,
+                    "workFormats": [],
+                    "tags": [],
+                    "englishLevels": [],
+                    "datacontact": [],
+                    "datefrom": "",
+                    "dateto": "",
+                    "hasCv": false,
+                    "uid": "",
+                    "sort": "",
+                    "user_ids": []
+                },
                 filterscountry: selectedCountries ? selectedCountries : [],
                 searchfilters: selectedValues ? selectedValues : [],
                 blacklistChecked: blacklistChecked ? blacklistChecked : false,
             },
             type: 'POST',
             dataType: 'json',
-            before: function() {
-                $('.left_vac.pipe').css('pointer-events','none');
+            before: function () {
+                $('.left_vac.pipe').css('pointer-events', 'none');
             },
-            success: function(response) {
+            success: function (response) {
                 currentPage = response.currentPage;
                 tech_count = response.tech_count;
                 total_count = response.total_count;
@@ -887,30 +935,30 @@ function checkCheckboxes() {
                 $('.allmr.pipeCont.list').html(response.posts);
                 $('.pagination-links').html(response.pagination);
 
-                $('.page-numbers').each(function() {
+                $('.page-numbers').each(function () {
                     var text = $(this).text();  // Получить текст элемента
                     var num = parseInt(text, 10);  // Преобразовать текст в число
                     var link = $(this).attr('href');  // Получить ссылку
-                    if(currentPage === 1) {
+                    if (currentPage === 1) {
                         $('.prev.page-numbers').css({
-                            'visibility' : 'hidden',
-                            'pointer-events' : 'none'
+                            'visibility': 'hidden',
+                            'pointer-events': 'none'
                         });
                     } else {
                         $('.prev.page-numbers').css({
-                            'visibility' : 'visible',
-                            'pointer-events' : 'all'
+                            'visibility': 'visible',
+                            'pointer-events': 'all'
                         });
                     }
-                    if(currentPage === maxPages) {
+                    if (currentPage === maxPages) {
                         $('.next.page-numbers').css({
-                            'visibility' : 'hidden',
-                            'pointer-events' : 'none'
+                            'visibility': 'hidden',
+                            'pointer-events': 'none'
                         });
                     } else {
                         $('.next.page-numbers').css({
-                            'visibility' : 'visible',
-                            'pointer-events' : 'all'
+                            'visibility': 'visible',
+                            'pointer-events': 'all'
                         });
                     }
                     if (num === currentPage) {
@@ -922,10 +970,10 @@ function checkCheckboxes() {
                             $(this).replaceWith('<a class="page-numbers" href="' + link + '">' + text + '</a>');
                         }
                     }
-                    $('.pagnum .next.page-numbers').css('pointer-events','none');
+                    $('.pagnum .next.page-numbers').css('pointer-events', 'none');
                 });
 
-                $('.bk_cont a, .kinfo1 .cont a').each(function() {
+                $('.bk_cont a, .kinfo1 .cont a').each(function () {
                     if (!$(this).css('background-image') || $(this).css('background-image') === 'none') {
                         var classes = $(this).attr('class').split(' ');
                         var bkClass = '';
@@ -946,13 +994,13 @@ function checkCheckboxes() {
                     submitButton.removeAttr('disabled');
                 }
             },
-            error: function(error) {
+            error: function (error) {
                 console.log('Failed to filter posts:', error);
             },
-            complete: function() {
+            complete: function () {
                 ajaxInProgress = false;
-                $('.left_vac.pipe').css('pointer-events','all');
-                $('#reset-filters').css('pointer-events','all');
+                $('.left_vac.pipe').css('pointer-events', 'all');
+                $('#reset-filters').css('pointer-events', 'all');
             },
         });
     }
@@ -984,7 +1032,7 @@ function checkCheckboxes() {
         }
     });
 
-    $('#save-filter').on('click', function() {
+    $('#save-filter').on('click', function () {
         let filters = JSON.parse(localStorage.getItem('filters')) || {};
         let cou = JSON.parse(localStorage.getItem('selectedCountries')) || {};
         let filterName = $('#filter-name').val();
@@ -1003,7 +1051,7 @@ function checkCheckboxes() {
         updateSavedFilters();
         setTimeout(function () {
             $('#filter-name').val('');
-        },300 );
+        }, 300);
     });
 
     function updateSavedFilters() {
@@ -1024,7 +1072,7 @@ function checkCheckboxes() {
                         });
                         $('#vac_country').attr('value', savedCou[name].join('|'));
                         updateSelectedCountries();
-                    },350 );
+                    }, 350);
                     localStorage.setItem('filters', JSON.stringify(savedFiltersBz[name]));
                     setTimeout(function () {
                         let savedFilters = localStorage.getItem('filters');
@@ -1062,10 +1110,10 @@ function checkCheckboxes() {
                                     $(this).prop('checked', true);
                                 }
                             });
-                            if(hasCv === true) {
-                                $('#cv_ch').prop('checked', true);
+                            if (hasCv === true) {
+                                $('#cv_ch').prop('checked', false);
                             }
-                            if(uid === true) {
+                            if (uid === true) {
                                 $('#cv_ch').prop('checked', true);
                             }
                             $('.spec1-checkbox').each(function () {
@@ -1073,26 +1121,26 @@ function checkCheckboxes() {
                                     $(this).prop('checked', true);
                                 }
                             });
-                            englishLevels.forEach(function(level) {
+                            englishLevels.forEach(function (level) {
                                 $(`input[data-number='${level}']`).prop('checked', true);
                             });
-                            if(workFormats) {
+                            if (workFormats) {
                                 workFormats.forEach(function (format) {
                                     $(`input[data-level='${format}']`).prop('checked', true);
                                 });
                             }
-                            if(tags) {
+                            if (tags) {
                                 tags.forEach(function (ta) {
                                     $(`input[data-level='${ta}']`).prop('checked', true);
                                 });
                             }
-                            datacontact.forEach(function(comm) {
+                            datacontact.forEach(function (comm) {
                                 $(`input[data-level='${comm}']`).prop('checked', true);
                             });
                             isFiltering = true;
                             currentPage = 1; // Сбрасываем страницу на 1
                         }
-                    },350 );
+                    }, 350);
                     filterCandidates();
                 });
             let delBtn = $('<button class="delbtn">')
@@ -1161,7 +1209,7 @@ function checkCheckboxes() {
     function updateSelectedCountries() {
         let selectedCountries = [];
         $('.multiselect .countrySing.selected').each(function () {
-            let countryText = $(this).contents().filter(function() {
+            let countryText = $(this).contents().filter(function () {
                 return this.nodeType === 3; // Node.TEXT_NODE
             }).text().replace(/×/g, '').trim();
             selectedCountries.push(countryText);
@@ -1171,7 +1219,7 @@ function checkCheckboxes() {
     }
 
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         setTimeout(function () {
             let selectedCountries = JSON.parse(localStorage.getItem('selectedCountries')) || [];
             $('.multiselect .countrySing').each(function () {
@@ -1205,14 +1253,14 @@ function checkCheckboxes() {
     // });
     $('.sup').on('click', function () {
         var players = $(".kandItem1:visible");
-        var temp = players.sort(function(a,b){
+        var temp = players.sort(function (a, b) {
             return parseInt($(b).attr("data-zar")) - parseInt($(a).attr("data-zar"));
         });
         $(".pipeCont").html(temp);
     });
     $('.sdown').on('click', function () {
         var players = $(".kandItem1:visible");
-        var temp = players.sort(function(a,b){
+        var temp = players.sort(function (a, b) {
             return parseInt($(a).attr("data-zar")) - parseInt($(b).attr("data-zar"));
         });
         $(".pipeCont").html(temp);
@@ -1225,6 +1273,7 @@ function checkCheckboxes() {
     `);
 
     $('#search_country_div').on("click", getCountry.bind(this));
+
     function getCountry(e) {
         let currCountry = $(e.target).closest(".country2").text();
         $('#search_country_input').val(currCountry);
@@ -1234,17 +1283,16 @@ function checkCheckboxes() {
         // filterCandidates();
     };
     $('#search_country_input').on("click", function () {
-        if($('#search_country_div').css('display') == 'none')
-        {
+        if ($('#search_country_div').css('display') == 'none') {
             $('#search_country_div').slideDown();
         }
     });
 
     $('#loadRegions').on("change keyup", function () {
-        $('#loadRes8  option').prop('selected', function() {
+        $('#loadRes8  option').prop('selected', function () {
             return this.defaultSelected;
         });
-        $('.vac_city  option').prop('selected', function() {
+        $('.vac_city  option').prop('selected', function () {
             return this.defaultSelected;
         });
         const region = $('#loadRegions').val();
@@ -1263,11 +1311,10 @@ function checkCheckboxes() {
 
 
     $(document).ready(function () {
-        $('.buttons button').on('click',function(e) {
+        $('.buttons button').on('click', function (e) {
             if ($(this).hasClass('grid')) {
                 $('.allmr.pipeCont').removeClass('list').addClass('grid');
-            }
-            else if($(this).hasClass('list')) {
+            } else if ($(this).hasClass('list')) {
                 $('.allmr.pipeCont').removeClass('grid').addClass('list');
             }
         });
@@ -1282,7 +1329,7 @@ function checkCheckboxes() {
 
         $(document).on('click', '.cp_btn', function () {
             let cpbk = $(this).attr('id');
-            copyToClipboard('#'+cpbk);
+            copyToClipboard('#' + cpbk);
             $(this).parent().append('<div class="coppytext">Скопійовано</div>');
             setTimeout(function () {
                 $('.coppytext').remove();
@@ -1290,16 +1337,16 @@ function checkCheckboxes() {
         });
 
 
-        $(function(){
+        $(function () {
             $('body').on('click', '.modalCv', function () {
-                $('.pipeCont .myCandW.baza').css('transform','none');
-                    let cvmodal = $(this).parent();
+                $('.pipeCont .myCandW.baza').css('transform', 'none');
+                let cvmodal = $(this).parent();
                 setTimeout(function () {
                     cvmodal.addClass('active');
-                }, 150 );
+                }, 150);
             });
             $('body').on('click', "#modal-background, #modal-close", function () {
-                $('.pipeCont .myCandW.baza').css('transform','scale(1.02)');
+                // $('.pipeCont .myCandW.baza').css('transform','scale(1.02)');
                 $(".modalCv").parent().removeClass("active");
             });
         });
@@ -1402,16 +1449,16 @@ function checkCheckboxes() {
                     $(this).prop('checked', false);
                 }
             });
-            englishLevels.forEach(function(level) {
+            englishLevels.forEach(function (level) {
                 $(`input[data-level='${level}']`).prop('checked', false);
             });
-            workFormats.forEach(function(format) {
+            workFormats.forEach(function (format) {
                 $(`input[data-level='${format}']`).prop('checked', false);
             });
-            tags.forEach(function(ta) {
+            tags.forEach(function (ta) {
                 $(`input[data-level='${ta}']`).prop('checked', false);
             });
-            datacontact.forEach(function(comm) {
+            datacontact.forEach(function (comm) {
                 $(`input[data-level='${comm}']`).prop('checked', false);
             });
             $('.multiselect .countrySing').removeClass('selected');
@@ -1420,10 +1467,10 @@ function checkCheckboxes() {
             filterCandidates();
         });
 
-        $('#blacklist').change(function() {
-            if(this.checked) {
+        $('#blacklist').change(function () {
+            if (this.checked) {
                 // if the checkbox is checked, hide elements with data-bl="blacklist"
-                $('.kandItem1').each(function() {
+                $('.kandItem1').each(function () {
                     if ($(this).data('bl') === 'blacklist') {
                         $(this).hide();
                     }
@@ -1461,7 +1508,7 @@ function checkCheckboxes() {
         //     // isFiltering = true;
         // });
 
-        $('.cl_type').on('change', function(){
+        $('.cl_type').on('change', function () {
             // Get the value of the selected checkbox
             var selectedType = $(this).val();
 
@@ -1469,19 +1516,19 @@ function checkCheckboxes() {
             $('.cli_item').show();
 
             // If a checkbox is unchecked, hide items that have that value in data-compt
-            $('.cl_type:not(:checked)').each(function(){
+            $('.cl_type:not(:checked)').each(function () {
                 var typeToHide = $(this).val();
-                $('.cli_item').filter(function(){
+                $('.cli_item').filter(function () {
                     return $(this).data('compt') == typeToHide;
                 }).hide();
             });
 
             // If no checkbox is checked, show all items
-            if($('.cl_type:checked').length == 0){
+            if ($('.cl_type:checked').length == 0) {
                 $('.cli_item').show();
             }
         });
-        $('#mVac').change(function() {
+        $('#mVac').change(function () {
             var vacancy_id = $(this).val();
             $.ajax({
                 url: '/wp-admin/admin-ajax.php',
@@ -1490,35 +1537,35 @@ function checkCheckboxes() {
                     action: 'load_stages',
                     vacancy_id: vacancy_id
                 },
-                success: function(response) {
+                success: function (response) {
                     $('#mStage').html(response).show();
                 }
             });
         });
-$(document).on('click', '.editpopup', function () {
-    $('.ppover').css('display','block');
-    $('.maincommentPopup').css('display','block');
-});
-$(document).on('click', '.ppover', function () {
-    $('.ppover').css('display','none');
-    $('.maincommentPopup').css('display','none');
-});
-$(document).on('click', '.closecomment', function () {
-    $('.ppover').css('display','none');
-    $('.maincommentPopup').css('display','none');
-});
+        $(document).on('click', '.editpopup', function () {
+            $('.ppover').css('display', 'block');
+            $('.maincommentPopup').css('display', 'block');
+        });
+        $(document).on('click', '.ppover', function () {
+            $('.ppover').css('display', 'none');
+            $('.maincommentPopup').css('display', 'none');
+        });
+        $(document).on('click', '.closecomment', function () {
+            $('.ppover').css('display', 'none');
+            $('.maincommentPopup').css('display', 'none');
+        });
         $(document).on('click', '#sotrInfo', function () {
-            $('.modalBg').css('display','block');
-            $('.modalSotrIn').css('display','block');
+            $('.modalBg').css('display', 'block');
+            $('.modalSotrIn').css('display', 'block');
         });
         $(document).on('click', '.modalBg', function () {
-            $('.modalBg').css('display','none');
-            $('.modalSotrIn').css('display','none');
+            $('.modalBg').css('display', 'none');
+            $('.modalSotrIn').css('display', 'none');
         });
 
 // Начинаем наблюдение за DOM
-        var observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
+        var observer = new MutationObserver(function (mutations) {
+            mutations.forEach(function (mutation) {
                 if ($(mutation.addedNodes).length) {
                     let dateInput = $('#acf-field_612297b1e717a[type="hidden"]');
                     if (dateInput.length) {
@@ -1531,7 +1578,7 @@ $(document).on('click', '.closecomment', function () {
             });
         });
 
-        observer.observe(document, { childList: true, subtree: true });
+        observer.observe(document, {childList: true, subtree: true});
 
         function calculateAge(event) {
             let dateString = $(this).val();  // получим строку вида "20060811"
@@ -1556,7 +1603,7 @@ $(document).on('click', '.closecomment', function () {
 
         let dateInput = $('#acf-field_612297b1e717a[type="hidden"]');
         if (dateInput.length) {
-            $(document).on('change', dateInput,function () {
+            $(document).on('change', dateInput, function () {
                 let age = calculateAge();
                 console.log(age);
                 let ageElement = $('<div id="age">Age: ' + age + '</div>');
@@ -1590,17 +1637,24 @@ $(document).on('click', '.closecomment', function () {
             $('.ppop-wr').css('display', 'none');
             $('.passpop-overlay').css('display', 'none');
         });
-        $(document).ready(function() {
-            let bdate = $('#bdate');
-            if (bdate.length) {
-                let birthDate = new Date(bdate.text());
-                let age = calculateAge(birthDate);
-                bdate.text(age);
-                bdate.css('display','inline-block');
-            }
-        });
+
+        let bdate = $('#bdate');
+        if (bdate.length) {
+            console.log("Original bdate text:", bdate.text()); // Добавьте эту строку
+            let birthDate = new Date(bdate.text());
+            console.log("Parsed birthDate:", birthDate); // И эту строку
+
+            let age = calculateAge(birthDate);
+            bdate.text(age);
+            bdate.css('display', 'inline-block');
+        }
 
         function calculateAge(birthDate) {
+            if (!(birthDate instanceof Date) || isNaN(birthDate.getTime())) {
+                console.log("Invalid birthDate:", birthDate);
+                return -1; // или другое значение, которое вы считаете подходящим для некорректной даты
+            }
+
             let today = new Date();
             let age = today.getFullYear() - birthDate.getFullYear();
             let m = today.getMonth() - birthDate.getMonth();
@@ -1726,8 +1780,7 @@ $(document).on('click', '.closecomment', function () {
         // })();
 
 
-
-       // Modernizr.on('inputtypes.date', function(result) {
+        // Modernizr.on('inputtypes.date', function(result) {
         //     if (!result) {
         //         // No native support for <input type="date">, fall back to jQuery UI datepicker
         //         $( "#datepicker" ).datepicker();
@@ -1745,11 +1798,13 @@ $(document).on('click', '.closecomment', function () {
     });
 
     $(".faq1").on("click", ".faqOpen", updRekWrapper.bind(this));
+
     function updRekWrapper(e) {
         $('body').addClass("show_answ");
         let thisR = $(e.target).parents(".itemW");
         thisR.find(".faqItem").addClass("show2");
     }
+
     $('.faqClose').on('click', function () {
         $('body').removeClass("show_answ");
         $('.faqItem').removeClass("show2");
@@ -1759,8 +1814,9 @@ $(document).on('click', '.closecomment', function () {
     const surl6 = $('#surl6').html();
     // console.log(surl6);
     // $('#loadCalend').load(surl6 + "/wp-content/themes/devport/functions/loadRekrKalendar.php");
-    $('#loadCalend').load(surl6 + "/wp-content/themes/devport/functions/loadRekrKalendar.php",  {
-        cu6: parseInt($('#cu6').html(), 10), cu7: parseInt($('#cutask').html(), 10) });
+    $('#loadCalend').load(surl6 + "/wp-content/themes/devport/functions/loadRekrKalendar.php", {
+        cu6: parseInt($('#cu6').html(), 10), cu7: parseInt($('#cutask').html(), 10)
+    });
 
     let ki2 = $('.kandItem1');
     // let ki3 = ki2.length;
@@ -1775,7 +1831,7 @@ $(document).on('click', '.closecomment', function () {
     let idCand2 = 0;
     for (let i = 0; i < ki2.length; i++) {
         let cell = ki2[i];
-        let kicl= 'cl' + [i];
+        let kicl = 'cl' + [i];
 
         cell.classList.add(kicl);
         let tdbval = cell.dataset.timedb;
@@ -1783,6 +1839,7 @@ $(document).on('click', '.closecomment', function () {
         // ---------------------------------------------------------------------------------------
         let timeInSecs;
         let ticker;
+
         //let timedb = $('#timedb').val();
 
         function startTimer(secs) {
@@ -1792,18 +1849,17 @@ $(document).on('click', '.closecomment', function () {
 
         let executed = 0;
 
-        function tick9( ) {
+        function tick9() {
             //$('.'+kicl+' .getToVac').attr("disabled", true);
             $('.timlid .getToVac').prop("disabled", false);
             let secs = timeInSecs;
             if (secs > 0) {
                 timeInSecs--;
-            }
-            else {
-                $('.'+kicl+' .timer2').html();
-                $('.'+kicl+' .timer2').addClass('dnone');
+            } else {
+                $('.' + kicl + ' .timer2').html();
+                $('.' + kicl + ' .timer2').addClass('dnone');
 
-                if(executed!==1) {
+                if (executed !== 1) {
                     executed = 1;
                     console.log('timer stopped');
                     // cell.classList.add('dnone');
@@ -1811,8 +1867,8 @@ $(document).on('click', '.closecomment', function () {
                     //console.log(currItem2);
 
                     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                    if(pipeVal=="own") {
-                        const newTime = Math.floor(new Date().getTime() / 1000+86400);
+                    if (pipeVal == "own") {
+                        const newTime = Math.floor(new Date().getTime() / 1000 + 86400);
                         const timer1 = {
                             'postId': currItem2,
                             'timer': newTime,
@@ -1843,7 +1899,7 @@ $(document).on('click', '.closecomment', function () {
                         'timer': newTime2,
                         'status': 'Горящий'
                     }
-                    if(pipeVal=="public") {
+                    if (pipeVal == "public") {
                         console.log(timer2);
                         //alert('oop');
                         $.ajax({
@@ -1877,17 +1933,18 @@ $(document).on('click', '.closecomment', function () {
                 cellBtn.removeAttribute('disabled');
             }
 
-            let hours= Math.floor(secs/3600);
+            let hours = Math.floor(secs / 3600);
             secs %= 3600;
-            let mins = Math.floor(secs/60);
+            let mins = Math.floor(secs / 60);
             secs %= 60;
-            let pretty = ( (hours < 10 ) ? "0" : "" ) + hours + ":" + ( (mins < 10) ? "0" : "" ) + mins + ":" + ( (secs < 10) ? "0" : "" ) + secs;
+            let pretty = ((hours < 10) ? "0" : "") + hours + ":" + ((mins < 10) ? "0" : "") + mins + ":" + ((secs < 10) ? "0" : "") + secs;
             //document.getElementById("countdown").innerHTML = pretty;
             // console.log(pretty);
-            $('.'+kicl+' .timer2').html(pretty).css('border', '1px dashed #000');
+            $('.' + kicl + ' .timer2').html(pretty).css('border', '1px dashed #000');
             // $('.'+kicl+' .getToVac').attr("disabled", true);
         }
-        if(tdbval>0 && tdbval - rr>0){
+
+        if (tdbval > 0 && tdbval - rr > 0) {
             startTimer(tdbval - rr);  // 24 hours in seconds
         }
 
@@ -1906,7 +1963,7 @@ $(document).on('click', '.closecomment', function () {
         name1 = currItem1.data("name1");
         fam1 = currItem1.data("fam1");
 
-        $('#cName').text(name1+' '+fam1);
+        $('#cName').text(name1 + ' ' + fam1);
 
         $(".vacOption").hide();
         $(".vacOption[data-exist=yes]").show();
@@ -1951,12 +2008,12 @@ $(document).on('click', '.closecomment', function () {
         // console.log(move1);
         // .................... create id event when reassign rekruter ...................................
         const d1 = new Date();
-        const month = d1.getMonth()+1;
+        const month = d1.getMonth() + 1;
         const day = d1.getDate();
         const hours = d1.getHours();
         const min = d1.getMinutes();
         const sec = d1.getSeconds();
-        const curdt = d1.getFullYear() + (month<10 ? '0' : '')+"-"+ month+"-" + (day<10 ? '0' : '') + day + " " + hours+":"+min+":"+sec;
+        const curdt = d1.getFullYear() + (month < 10 ? '0' : '') + "-" + month + "-" + (day < 10 ? '0' : '') + day + " " + hours + ":" + min + ":" + sec;
         //console.log('vv22 ' + Math.floor(sec1));
         let evc = idCand;
         let evr = $('#moveToRekr h2').data("rekr");
@@ -2013,14 +2070,14 @@ $(document).on('click', '.closecomment', function () {
     // ================================= Особистий Pipeline ===========================================
     let pipeState = 1;
     $('.ownPipe').on("click", function () {
-        if(pipeState===1){
+        if (pipeState === 1) {
             $('.ownPipe').css('transition', 'all .3s ease 0s').text('Мои кандидаты');
-            pipeState=0;
+            pipeState = 0;
             $(".pipe1").slideUp("slow");
             $(".pipe2").slideDown("slow");
-        }else{
+        } else {
             $('.ownPipe').text('Особистий Pipeline');
-            pipeState=1;
+            pipeState = 1;
             $(".pipe2").slideUp("slow");
             $(".pipe1").slideDown("slow");
         }
@@ -2038,21 +2095,21 @@ $(document).on('click', '.closecomment', function () {
         //     cu6: parseInt($('#cu6').html(), 10) });
         //alert('yooo');
         function dunDelay() {
-            let dNumbr=$('.loadRes3 div').length;
+            let dNumbr = $('.loadRes3 div').length;
             //console.log('dn1 '+dNumbr);
-            let dElem=$('.hotC>div').length;
+            let dElem = $('.hotC>div').length;
             // if(dNumbr == dElem || (changedVal==dNumbr && changedVal == 0)){
             //     $('#numbHot').css('visibility', 'hidden');
             // }
             // $('#numbHot').css('visibility', 'hidden');
-            if(dNumbr !== dElem){
+            if (dNumbr !== dElem) {
                 // if(dNumbr !== dElem || (changedVal!==dNumbr && changedVal !== 0)){
                 //changedVal=dNumbr;
                 //console.log('jjrr');
                 $('#numbHot').remove();
 
-                const nHot = dNumbr-dElem;
-                if(nHot>0){
+                const nHot = dNumbr - dElem;
+                if (nHot > 0) {
                     $('#numbHot5').css('display', 'block');
                     $('#numbHot5').text(nHot);
                     $('#numbHot').css('visibility', 'visible');
@@ -2069,6 +2126,7 @@ $(document).on('click', '.closecomment', function () {
             // console.log('elem '+dElem);
             // alert('yooo');
         }
+
         setTimeout(dunDelay, 3000);
 
         let numHot = $('.hotOnly .hot5').filter(function () {
@@ -2086,11 +2144,13 @@ $(document).on('click', '.closecomment', function () {
         }
         timerId = setTimeout(tick, 2000); // (*)
     }, 10);
+
     //  $('#numbHot').css('visibility', 'hidden');
     function showNotif() {
         // $('#numbHot').css('visibility', 'visible');
 
     }
+
     setTimeout(showNotif, 2100);
 
     // ---------------------------- open notification tab ----------------------------------
@@ -2147,14 +2207,14 @@ $(document).on('click', '.closecomment', function () {
             noResults.replaceWith(inshiPostContainer);
         }
 
-        $(document).ready(function() {
-            $('#filterToggle').click(function() {
+        $(document).ready(function () {
+            $('#filterToggle').click(function () {
                 $('#filterBox').slideToggle();
-                $('#filterBox').css('display','flex');
+                $('#filterBox').css('display', 'flex');
             });
         });
 
-        $('#mVac2').change(function() {
+        $('#mVac2').change(function () {
             var vacancy_id = $(this).val();
             $.ajax({
                 url: '/wp-admin/admin-ajax.php',
@@ -2163,14 +2223,14 @@ $(document).on('click', '.closecomment', function () {
                     action: 'load_stages2',
                     vacancy_id: vacancy_id
                 },
-                success: function(response) {
+                success: function (response) {
                     $('#mStage2').html(response).show();
                 }
             });
         });
 
-        $(document).ready(function() {
-            $('#saveMove2').click(function(e) {
+        $(document).ready(function () {
+            $('#saveMove2').click(function (e) {
                 e.preventDefault();
 
                 // Получаем выбранные значения
@@ -2192,24 +2252,25 @@ $(document).on('click', '.closecomment', function () {
         });
     })(jQuery);
 
-    document.getElementById('getToVac2').addEventListener('click', function() {
+    document.getElementById('getToVac2').addEventListener('click', function () {
         document.getElementById('moveToRekr2').style.display = 'block';
     });
 
-    document.getElementById('close1').addEventListener('click', function() {
+    document.getElementById('close1').addEventListener('click', function () {
         document.getElementById('moveToRekr2').style.display = 'none';
     });
 
 // ----------------------------------- cantries filter load values --------------------------
-    $('#loadRes7').load(surl6 + "/wp-content/themes/devport/functions/load_countries_filter.php",  {
-        cu6: parseInt($('#cu6').html(), 10) });
+    $('#loadRes7').load(surl6 + "/wp-content/themes/devport/functions/load_countries_filter.php", {
+        cu6: parseInt($('#cu6').html(), 10)
+    });
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         $('#userlist').select2();
     });
 });
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     // Получите попап и кнопки
     var popup = document.getElementById("popup");
     var btn = document.getElementById("open-popup");
@@ -2217,14 +2278,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Когда пользователь нажимает на кнопку, откройте попап
     if (btn) {
-        btn.onmouseenter = function() {
+        btn.onmouseenter = function () {
             popup.style.display = "block";
         }
     }
 
     // Когда пользователь нажимает на кнопку (x), закройте попап
     if (span) {
-        span.onmouseleave = function() {
+        span.onmouseleave = function () {
             popup.style.display = "none";
         }
     }
