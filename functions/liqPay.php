@@ -180,10 +180,14 @@ class LiqPay
      */
     public function cnb_signature($params)
     {
-        $params = $this->cnb_params($params);
-        $private_key = $this->_private_key;
+        if (isset($params['data'])) {
+            $json = $params['data'];
+        } else {
+            $params = $this->cnb_params($params);
+            $json = $this->encode_params($params);
+        }
 
-        $json = $this->encode_params($params);
+        $private_key = $this->_private_key;
         $signature = $this->str_to_sign($private_key . $json . $private_key);
 
         return $signature;

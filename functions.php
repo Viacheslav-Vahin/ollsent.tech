@@ -1,78 +1,88 @@
 <?php
 require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 global $wpdb;
-//update_option('liqpay_public_key', 'sandbox_i20264170366');
-//update_option('liqpay_private_key', 'sandbox_8qAwO0zTV4B5uz0uKoOXlZBVgqNpfysENt4vdxXV');
+
 $charset_collate = $wpdb->get_charset_collate();
 $table_name = $wpdb->prefix . 'subscriptions';
 
-$sql = "CREATE TABLE $table_name (
-    id mediumint(9) NOT NULL AUTO_INCREMENT,
-    user_id mediumint(9) NOT NULL,
-    subscription_date datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
-    status varchar(55) DEFAULT 'active' NOT NULL,
-    PRIMARY KEY (id)
-) $charset_collate;";
-
-dbDelta($sql);
+// Перевірка на наявність таблиці
+if($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+    $sql = "CREATE TABLE $table_name (
+        id mediumint(9) NOT NULL AUTO_INCREMENT,
+        user_id mediumint(9) NOT NULL,
+        subscription_date datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+        status varchar(55) DEFAULT 'active' NOT NULL,
+        PRIMARY KEY (id)
+    ) $charset_collate;";
+    dbDelta($sql);
+}
 
 require get_template_directory() . '/functions/liqPay.php'; # liqPay
 
 function liqpay_shortcode($atts) {
-    $publicKey = get_option('liqpay_public_key');
-    $privateKey = get_option('liqpay_private_key');
+    //        $publicKey = get_option('liqpay_public_key');
+//        $privateKey = get_option('liqpay_private_key');
+    $publicKey = 'sandbox_i20264170366';
+    $privateKey = 'sandbox_8qAwO0zTV4B5uz0uKoOXlZBVgqNpfysENt4vdxXV';
     $liqPay = new LiqPay($publicKey, $privateKey);
 
     $params = [
-        'action'               => 'subscribe',
-        'version'              => '3',
-//        'phone'                => '380950000001',
-        'amount'               => '1',
-        'currency'             => 'UAH',
+        'action' => 'subscribe',
+        'version' => 3,
+        'amount' => 1,
+        'currency' => 'UAH',
         'description' => 'Підписка на один місяць',
-        'order_id'             => 'order_id_1',
-        'subscribe'            => '1',
+        'order_id' => 'order_id_55',
+        'subscribe' => '1',
         'subscribe_date_start' => date('Y-m-d H:i:s'),
-        'subscribe_periodicity'=> 'month',
-//        'card'                 => '4731195301524634',
-//        'card_exp_month'       => '03',
-//        'card_exp_year'        => '22',
-//        'card_cvv'             => '111'
+        'subscribe_periodicity' => 'month',
+        'result_url' => 'https://stage.crm.ollsent.tech/rekruter',
     ];
 
     return $liqPay->cnb_form($params);
 }
 add_shortcode('liqpay', 'liqpay_shortcode');
 
-add_action('init', 'handle_liqpay_response');
+add_action('plugins_loaded ', 'handle_liqpay_response');
 function liqpay_log($message) {
     error_log("[LiqPay]: " . $message);
 }
 function handle_liqpay_response() {
-    liqpay_log("Функция handle_liqpay_response вызвана");
-//    if(!is_page('rekruter')) {
-//        liqpay_log("rekruter page not found");
-//        return;
-//    }
-    // Проверяем, что это POST-запрос и в нем есть необходимые параметры
-    liqpay_log(json_encode($_POST));
-    liqpay_log($_SERVER['REQUEST_METHOD']);
-    liqpay_log($_POST['data']);
-    liqpay_log($_POST['signature']);
+    liqpay_log("Функція handle_liqpay_response була викликана");
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['data'], $_POST['signature'])) {
-        $publicKey = get_option('liqpay_public_key');
-        $privateKey = get_option('liqpay_private_key');
+//        $publicKey = get_option('liqpay_public_key');
+//        $privateKey = get_option('liqpay_private_key');
+        $publicKey = 'sandbox_i20264170366';
+        $privateKey = 'sandbox_8qAwO0zTV4B5uz0uKoOXlZBVgqNpfysENt4vdxXV';
         $liqpay = new LiqPay($publicKey, $privateKey);
         $data = $_POST['data'];
         $signature = $_POST['signature'];
-        // Проверяем подпись
+
+        liqpay_log("data: " . $data);
+        $decoded_data = $liqpay->decode_params($data);
+        liqpay_log("Decoded data: " . json_encode($decoded_data));
+        liqpay_log("Received signature: " . $signature);
+        liqpay_log("Expected signature: " . $liqpay->cnb_signature(['data' => $data]));
         if ($liqpay->cnb_signature(['data' => $data]) === $signature) {
+            liqpay_log("Декодовані дані від LiqPay: ");
             $decoded_data = $liqpay->decode_params($data);
-            $user_email = $decoded_data['email']; // Замените на правильный ключ, если в $decoded_data содержится email пользователя
+//            $user_email = $decoded_data['email'];
+            $user_email = $decoded_data['email'] ?? null;
+            if (!$user_email) {
+                $current_user = wp_get_current_user();
+                if ($current_user->exists()) {
+                    $user_email = "fotockua@gmail.com";
+                } else {
+                    $user_email = "fotockua@gmail.com";
+                    liqpay_log("Користувач не авторизований, email відсутній");
+                }
+            }
             function send_success_email($user_email) {
                 wp_mail($user_email, 'Подписка активирована!', 'Спасибо за вашу подписку!');
             }
-            if ($decoded_data['status'] === 'success') {
+            liqpay_log("user_email " . $user_email);
+            liqpay_log("decoded_data[status] " . $decoded_data['status']);
+            if ($decoded_data['status'] === 'subscribed') {
                 liqpay_log("Оплата прошла успешно для пользователя " . $user_email);
 
                 if (email_exists($user_email)) {
@@ -153,6 +163,35 @@ function handle_liqpay_response() {
         exit;
     }
 }
+function update_liqpay_subscription($order_id, $amount, $currency, $description) {
+    // Ваші ключі для LiqPay
+    $publicKey = 'sandbox_i20264170366';
+    $privateKey = 'sandbox_8qAwO0zTV4B5uz0uKoOXlZBVgqNpfysENt4vdxXV';
+
+    $liqpay = new LiqPay($publicKey, $privateKey);
+
+    // Виклик API для зміни підписки
+    $response = $liqpay->api("request", array(
+        'action'      => 'subscribe_update',
+        'version'     => '3',
+        'order_id'    => $order_id,
+        'amount'      => $amount,
+        'currency'    => $currency,
+        'description' => $description
+    ));
+
+    // Логування відповіді
+    liqpay_log("Зміна підписки для order_id {$order_id}: " . json_encode($response));
+
+    // Перевірка статусу відповіді
+    if (isset($response['status']) && $response['status'] === 'subscribed') {
+        liqpay_log("Підписка для order_id {$order_id} успішно змінена.");
+        return true;
+    } else {
+        liqpay_log("Помилка при зміні підписки для order_id {$order_id}.");
+        return false;
+    }
+}
 
 require get_template_directory() . '/functions/post_types.php'; # AJAX search
 require get_template_directory() . '/functions/add_col_to_vac.php'; // Add columns to Vacansies Post Type
@@ -177,7 +216,7 @@ require get_template_directory() . '/assets/js/submit.php'; # save files
 function dp_scripts()
 {
     show_admin_bar(false);
-  //  wp_enqueue_style('agr-style', get_stylesheet_uri());
+    //  wp_enqueue_style('agr-style', get_stylesheet_uri());
     wp_enqueue_style('agr-style', get_stylesheet_uri(), NULL, microtime());
     wp_enqueue_style('jqueryUI_css', get_template_directory_uri() . '/assets/css/jquery-ui.css', array(), false, 'all');
     wp_enqueue_style('polzunok_css', get_template_directory_uri() . '/assets/css/polzunok.css', array(), false, 'all');
@@ -224,7 +263,7 @@ function load_jsCalendar() {
         wp_enqueue_script('js_jqueryui', get_template_directory_uri() . '/assets/js/jquery-ui.js', array('jquery'), '', false);
         wp_enqueue_script('js_timepicker', get_template_directory_uri() . '/assets/js/timepicker.js', array('jquery'), '', false);
         wp_enqueue_script('js_calendar', get_template_directory_uri() . '/assets/gogleCalendar/lib/main.js', array('jquery'), '', false);
-       wp_enqueue_script('js_custom', get_template_directory_uri() . '/assets/gogleCalendar/gc_custom.js', array('jquery'), '', false);
+        wp_enqueue_script('js_custom', get_template_directory_uri() . '/assets/gogleCalendar/gc_custom.js', array('jquery'), '', false);
         wp_localize_script('dp_scripts', 'devportData', array(
             'root_url' => get_site_url(),
             'cb' => wp_create_nonce('wp_rest')
@@ -235,7 +274,7 @@ function load_jsCalendar() {
 add_action('wp_enqueue_scripts', 'load_jsCalendar');
 function ch1() {
     if( is_page( 1087 ) ) {
-    //if( is_page( 133 ) || is_page( 1087 ) ) {
+        //if( is_page( 133 ) || is_page( 1087 ) ) {
         wp_enqueue_script('js_jqui', get_template_directory_uri() . '/assets/js/jquery-ui.js', array('jquery'), '', false);
         wp_enqueue_script('js_chart_lib', get_template_directory_uri() . '/assets/js/chart.min.js', array('jquery'), '', false);
         wp_enqueue_script('js_chart_cust', get_template_directory_uri() . '/assets/js/chart.cust.js', array('jquery'), '', false);
@@ -2289,10 +2328,10 @@ function create_custom_post() {
 //                'message' => 'Пост с таким названием уже существует. Пожалуйста, выберите другое название.'
 //            ));
             header('Content-Type: application/json');
-                echo json_encode(array(
-                    'error' => true,
-                    'message' => 'Така опція вже існує!',
-                ));
+            echo json_encode(array(
+                'error' => true,
+                'message' => 'Така опція вже існує!',
+            ));
             exit;
         }
         // Создаем новый пост
@@ -2444,9 +2483,7 @@ function render_post($post) {
     // For ACF fields
     $imya = get_field('imya', $post_id);
     $familiya = get_field('familiya', $post_id);
-    $pdf_parsed_text = get_field('pdf_parsed', $post_id);
-    $pdf_parsed = strip_tags($pdf_parsed_text);
-    $pdf_parsed = preg_replace('/[^а-яА-Яa-zA-Z0-9\s.,]/u', '', $pdf_parsed);
+    $pdf_parsed = get_field('pdf_parsed', $post_id);
     $code_cv = get_field('code_cv', $post_id);
     $main_comment_sw = get_field('main_comment_sw', $post_id);
     $main_comment = get_field('main_comment', $post_id);
@@ -2645,10 +2682,10 @@ function render_post($post) {
             <p>{$field_61c9624e3d8fc}</p>
         </div>
         <div class='mcName'>";
-            if($photo) {
-                $html .= " <div class='photo' style='background-image: url({$photo})'></div>";
-            }
-            $html .= "<div class='bk_name'>
+    if($photo) {
+        $html .= " <div class='photo' style='background-image: url({$photo})'></div>";
+    }
+    $html .= "<div class='bk_name'>
                 <a href='{$post_permalink}'>
                     <p>{$imya} {$familiya}</p>
                 </a>
@@ -2680,12 +2717,12 @@ function render_post($post) {
         </div>
         <div class='bk_end'>
             <div class='bk_cv'>";
-    $html .= "{$zvidkuAll}";
     $resume_id = get_field('resume_r', $post_id);
     if ($resume_id) {
         $html .= "<a href='javascript:void(0);' class='modalCv' id='modal-launcher'>";
         if ($zvidki_kandidat) {
 //            $html .= "<span class='fromWhere'>{$zvidki_kandidat}</span>";
+            $html .= "{$zvidkuAll}";
         }
         $html .= "<img src='". get_bloginfo('template_url') . "/assets/img/cv.png' alt='CV'/></a>
                 <div id='modal-background'></div>
@@ -3609,8 +3646,3 @@ function transfer_admin_rights_callback() {
     }
     wp_die();
 }
-
-function add_x_frame_options() {
-    header('X-Frame-Options: DENY');
-}
-add_action('init', 'add_x_frame_options');
