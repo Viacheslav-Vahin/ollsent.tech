@@ -14,6 +14,22 @@ function admin_menu() {
         'menu_icon' => 'dashicons-admin-menu'
     ));
 }
+function subscription() {
+    register_post_type('subscription', array(
+        'supports' => [ 'title', 'editor' ],
+        'public' => true,
+        'has_archive' => true,
+        'show_in_rest' => true,
+        'labels' => array(
+            'name' => 'Підписки',
+            'add_new_item' => 'Добавити Menu',
+            'edit_item' => 'Редагувати Menu',
+            'all_items' => 'Усі Menu',
+            'singular_name' => 'subscription'
+        ),
+        'menu_icon' => 'dashicons-admin-menu'
+    ));
+}
 function mova_type() {
     register_post_type('mova', array(
         'supports' => array('title', 'editor'),
@@ -934,6 +950,7 @@ function countries_type() {
 }
 
 function cust_post_types() {
+    subscription();
     vac_type();
     admin_menu();
     language_type();
